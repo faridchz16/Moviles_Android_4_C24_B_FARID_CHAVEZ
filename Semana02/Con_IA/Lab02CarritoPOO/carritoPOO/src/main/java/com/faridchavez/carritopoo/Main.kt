@@ -2,49 +2,42 @@ package com.faridchavez.carritopoo
 
 fun main() {
 
-    val productos = mutableListOf<Producto>()
+    val carrito = Carrito()
 
-    productos.add(
-        Electronico(
-            "Laptop",
-            2500.00,
-            1
-        )
+    carrito.agregarProducto(
+        Electronico("Laptop", 2500.00, 1)
     )
 
-    productos.add(
-        Accesorio(
-            "Mouse",
-            50.00,
-            2
-        )
+    carrito.agregarProducto(
+        Accesorio("Mouse", 50.00, 2)
     )
 
-    productos.add(
-        Accesorio(
-            "Teclado",
-            120.00,
-            1
-        )
+    carrito.agregarProducto(
+        Accesorio("Teclado", 120.00, 1)
     )
 
-    productos.add(
-        Electronico(
-            "Monitor",
-            800.00,
-            1
-        )
+    carrito.agregarProducto(
+        Electronico("Monitor", 800.00, 1)
     )
 
     println("========================================")
     println(" CARRITO DE COMPRAS - POO ")
     println("========================================")
+    println()
 
-    for (producto in productos) {
-        println("Producto: ${producto.nombre}")
-        println("Precio: S/ ${producto.precio}")
-        println("Cantidad: ${producto.cantidad}")
-        println("Importe: S/ ${producto.calcularImporte()}")
-        println("----------------------------------------")
-    }
+    carrito.mostrarDetalle()
+
+    val subtotal = carrito.calcularSubtotal()
+    val igv = carrito.calcularIGV()
+    val total = carrito.calcularTotal()
+    val descuento = carrito.calcularDescuento()
+    val totalFinal = total - descuento
+
+    println()
+
+    println(String.format("Subtotal            : S/ %8.2f", subtotal))
+    println(String.format("IGV (18%%)           : S/ %8.2f", igv))
+    println(String.format("TOTAL               : S/ %8.2f", total))
+    println(String.format("Descuento           : S/ %8.2f", descuento))
+    println(String.format("TOTAL CON DESCUENTO : S/ %8.2f", totalFinal))
 }
