@@ -25,7 +25,8 @@ fun calcularTotal(subtotal: Double, igv: Double): Double {
 }
 
 fun mostrarDetalle(productos: List<Producto>) {
-    println("-------- DETALLE DEL CARRITO --------")
+    println("--------- DETALLE DEL CARRITO ---------")
+
     var i = 1
 
     for (p in productos) {
@@ -34,17 +35,22 @@ fun mostrarDetalle(productos: List<Producto>) {
         println(
             String.format(
                 "%d. %-20s x%d  S/ %8.2f",
-                i,
-                p.nombre,
-                p.cantidad,
-                importe
+                i, p.nombre, p.cantidad, importe
             )
         )
 
         i++
     }
 
-    println("-------------------------------------")
+    println("---------------------------------------")
+}
+
+fun calcularDescuento(total: Double): Double {
+    return when {
+        total > 5000 -> total * 0.10
+        total > 3000 -> total * 0.05
+        else -> 0.0
+    }
 }
 
 fun main() {
@@ -64,10 +70,18 @@ fun main() {
     productos.add(Producto("Teclado", 120.00, 1))
     productos.add(Producto("Audifonos", 180.00, 1))
 
-    println()
     mostrarDetalle(productos)
 
     println("Cantidad de productos: ${productos.size}")
+
+    val masCaro = productos.maxByOrNull { it.precio }
+
+    if (masCaro != null) {
+        println(
+            "Producto mas caro: ${masCaro.nombre} " +
+                    String.format("(S/ %.2f)", masCaro.precio)
+        )
+    }
 
     val subtotal = calcularSubtotal(productos)
     val igv = calcularIGV(subtotal)
@@ -75,7 +89,24 @@ fun main() {
 
     println()
 
-    println(String.format("Subtotal      : S/ %8.2f", subtotal))
-    println(String.format("IGV (18%%)    : S/ %8.2f", igv))
-    println(String.format("TOTAL A PAGAR : S/ %8.2f", total))
+    println(String.format("Subtotal       : S/ %8.2f", subtotal))
+    println(String.format("IGV (18%%)     : S/ %8.2f", igv))
+    println(String.format("TOTAL A PAGAR  : S/ %8.2f", total))
+
+    val descuento = calcularDescuento(total)
+    val totalConDescuento = total - descuento
+
+    println()
+
+    if (descuento > 0) {
+        println(String.format("Descuento aplicado : S/ %.2f", descuento))
+        println(
+            String.format(
+                "TOTAL CON DESCUENTO : S/ %.2f",
+                totalConDescuento
+            )
+        )
+    } else {
+        println("No se aplica descuento")
+    }
 }
