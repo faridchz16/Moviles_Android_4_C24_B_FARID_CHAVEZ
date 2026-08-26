@@ -33,6 +33,19 @@ fun main() {
     val descuento = carrito.calcularDescuento()
     val totalFinal = total - descuento
 
+    val productoMasCaro = carrito.obtenerProductoMasCaro()
+
+    if (productoMasCaro != null) {
+        println()
+        println("Producto mas caro: ${productoMasCaro.nombre}")
+        println(
+            String.format(
+                "Precio del producto mas caro: S/ %.2f",
+                productoMasCaro.precio
+            )
+        )
+    }
+
     println()
 
     println(String.format("Subtotal            : S/ %8.2f", subtotal))
