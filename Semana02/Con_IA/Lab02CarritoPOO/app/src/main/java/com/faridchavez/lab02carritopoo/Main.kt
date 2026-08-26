@@ -1,30 +1,50 @@
-package com.faridchavez.lab02carritopoo
+package com.faridchavez.carritopoo
 
 fun main() {
 
-    val producto1 = Electronico(
-        "Laptop",
-        2500.00,
-        1
+    val productos = mutableListOf<Producto>()
+
+    productos.add(
+        Electronico(
+            "Laptop",
+            2500.00,
+            1
+        )
     )
 
-    val producto2 = Accesorio(
-        "Mouse",
-        50.00,
-        2
+    productos.add(
+        Accesorio(
+            "Mouse",
+            50.00,
+            2
+        )
+    )
+
+    productos.add(
+        Accesorio(
+            "Teclado",
+            120.00,
+            1
+        )
+    )
+
+    productos.add(
+        Electronico(
+            "Monitor",
+            800.00,
+            1
+        )
     )
 
     println("========================================")
     println(" CARRITO DE COMPRAS - POO ")
     println("========================================")
 
-    println("Producto 1: ${producto1.nombre}")
-    println("Precio: S/ ${producto1.precio}")
-    println("Cantidad: ${producto1.cantidad}")
-
-    println()
-
-    println("Producto 2: ${producto2.nombre}")
-    println("Precio: S/ ${producto2.precio}")
-    println("Cantidad: ${producto2.cantidad}")
+    for (producto in productos) {
+        println("Producto: ${producto.nombre}")
+        println("Precio: S/ ${producto.precio}")
+        println("Cantidad: ${producto.cantidad}")
+        println("Importe: S/ ${producto.calcularImporte()}")
+        println("----------------------------------------")
+    }
 }

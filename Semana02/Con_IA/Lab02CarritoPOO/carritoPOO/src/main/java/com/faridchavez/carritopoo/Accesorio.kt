@@ -4,4 +4,9 @@ class Accesorio(
     nombre: String,
     precio: Double,
     cantidad: Int
-) : Producto(nombre, precio, cantidad)
+) : Producto(nombre, precio, cantidad) {
+
+    override fun calcularImporte(): Double {
+        return precio * cantidad
+    }
+}
