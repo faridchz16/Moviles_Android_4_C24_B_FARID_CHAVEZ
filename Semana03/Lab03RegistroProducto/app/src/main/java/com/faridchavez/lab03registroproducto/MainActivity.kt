@@ -114,14 +114,6 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "✓ Producto registrado correctamente",
-                color = Color(0xFF2E7D32),
-                style = MaterialTheme.typography.bodyMedium
-            )
         } else {
             Text(
                 text = "Aún no has registrado ningún producto",
