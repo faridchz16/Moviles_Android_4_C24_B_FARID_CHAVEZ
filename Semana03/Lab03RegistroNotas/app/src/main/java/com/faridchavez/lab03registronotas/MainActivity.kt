@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Scaffold
@@ -43,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.faridchavez.lab03registronotas.ui.theme.Lab03RegistroNotasTheme
+import java.util.Locale
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +72,7 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
 
     var redondear by remember { mutableStateOf(false) }
     var confirmado by remember { mutableStateOf(false) }
+    var mostrarResultado by remember { mutableStateOf(false) }
 
     val moradoHeader = Color(0xFF5E4B8B)
     val badgeFondo = Color(0xFFEDE7F6)
@@ -118,7 +124,10 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 nombreCurso = "Fundamentos de Programación",
                 pesoTexto = "(20%)",
                 valor = notaFundamentos,
-                onValueChange = { notaFundamentos = it },
+                onValueChange = {
+                    notaFundamentos = it
+                    mostrarResultado = false
+                },
                 colorPrimario = moradoHeader,
                 badgeFondo = badgeFondo,
                 badgeTexto = badgeTexto
@@ -128,7 +137,10 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 nombreCurso = "Programación Orientada a Objetos",
                 pesoTexto = "(25%)",
                 valor = notaPOO,
-                onValueChange = { notaPOO = it },
+                onValueChange = {
+                    notaPOO = it
+                    mostrarResultado = false
+                },
                 colorPrimario = moradoHeader,
                 badgeFondo = badgeFondo,
                 badgeTexto = badgeTexto
@@ -138,7 +150,10 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 nombreCurso = "Programación en Móviles",
                 pesoTexto = "(30%)",
                 valor = notaMoviles,
-                onValueChange = { notaMoviles = it },
+                onValueChange = {
+                    notaMoviles = it
+                    mostrarResultado = false
+                },
                 colorPrimario = moradoHeader,
                 badgeFondo = badgeFondo,
                 badgeTexto = badgeTexto
@@ -148,7 +163,10 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 nombreCurso = "Base de Datos",
                 pesoTexto = "(25%)",
                 valor = notaBD,
-                onValueChange = { notaBD = it },
+                onValueChange = {
+                    notaBD = it
+                    mostrarResultado = false
+                },
                 colorPrimario = moradoHeader,
                 badgeFondo = badgeFondo,
                 badgeTexto = badgeTexto
@@ -200,7 +218,7 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { /* Lógica calculo commit 4 */ },
+                onClick = { mostrarResultado = true },
                 enabled = confirmado,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -221,16 +239,127 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            if (mostrarResultado) {
+                val pPonderado = (notaFundamentos * 0.20f) +
+                        (notaPOO * 0.25f) +
+                        (notaMoviles * 0.30f) +
+                        (notaBD * 0.25f)
+
+                val pFinalValor = if (redondear) pPonderado.roundToInt().toFloat() else pPonderado
+                val pFinalTexto = if (redondear) "${pPonderado.roundToInt()}" else String.format(Locale.US, "%.2f", pPonderado)
+
+                val (observacion, chipBgColor, chipTextColor) = when {
+                    pFinalValor >= 17f -> Triple("EXCELENTE", Color(0xFFE8F5E9), Color(0xFF1B5E20))
+                    pFinalValor >= 13f -> Triple("APROBADO", Color(0xFFE8F5E9), Color(0xFF2E7D32))
+                    pFinalValor >= 10f -> Triple("EN RECUPERACIÓN", Color(0xFFFFF8E1), Color(0xFFF57F17))
+                    else -> Triple("DESAPROBADO", Color(0xFFFFEBEE), Color(0xFFC62828))
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row {
+                            Text(text = "Promedio ponderado:  ", fontSize = 14.sp, color = Color(0xFF424242))
+                            Text(
+                                text = String.format(Locale.US, "%.2f", pPonderado),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF212121)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Promedio final:  ",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = moradoHeader
+                            )
+                            Text(
+                                text = pFinalTexto,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = moradoHeader
+                            )
+                        }
+
+                        if (redondear) {
+                            Text(
+                                text = "(redondeado)",
+                                fontSize = 11.sp,
+                                color = Color.Gray
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = chipBgColor,
+                            modifier = Modifier.border(
+                                width = 1.dp,
+                                color = chipTextColor.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        ) {
+                            Text(
+                                text = observacion,
+                                color = chipTextColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "✓ Promedio calculado correctamente",
+                        color = Color(0xFF2E7D32),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Asigna las notas y confirma para calcular",
+                        color = Color.Gray,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Asigna las notas y confirma para calcular",
+                    text = "Desarrollado por: Farid Chavez Campos",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 12.sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
