@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,6 +51,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
+    var errorMensaje by remember { mutableStateOf<String?>(null) }
     var mostrarResumen by remember { mutableStateOf(false) }
 
     Column(
@@ -70,8 +72,12 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
         OutlinedTextField(
             value = nombre,
-            onValueChange = { nombre = it },
+            onValueChange = {
+                nombre = it
+                errorMensaje = null
+            },
             label = { Text("Nombre del producto") },
+            isError = errorMensaje != null && nombre.isBlank(),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -80,26 +86,82 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = precio,
-                onValueChange = { precio = it },
+                onValueChange = {
+                    precio = it
+                    errorMensaje = null
+                },
                 label = { Text("Precio (S/)") },
+                isError = errorMensaje != null && (precio.toDoubleOrNull() ?: 0.0) <= 0,
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
             OutlinedTextField(
                 value = cantidad,
-                onValueChange = { cantidad = it },
+                onValueChange = {
+                    cantidad = it
+                    errorMensaje = null
+                },
                 label = { Text("Cantidad") },
+                isError = errorMensaje != null && (cantidad.toIntOrNull() ?: 0) <= 0,
                 modifier = Modifier.weight(1f)
+            )
+        }
+
+        if (errorMensaje != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMensaje!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = { mostrarResumen = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("AGREGAR PRODUCTO")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    val p = precio.toDoubleOrNull()
+                    val c = cantidad.toIntOrNull()
+
+                    when {
+                        nombre.isBlank() -> {
+                            errorMensaje = "Ingresa el nombre del producto"
+                            mostrarResumen = false
+                        }
+                        p == null || p <= 0.0 -> {
+                            errorMensaje = "El precio debe ser un número mayor a 0"
+                            mostrarResumen = false
+                        }
+                        c == null || c <= 0 -> {
+                            errorMensaje = "La cantidad debe ser un entero mayor a 0"
+                            mostrarResumen = false
+                        }
+                        else -> {
+                            errorMensaje = null
+                            mostrarResumen = true
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("AGREGAR")
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            OutlinedButton(
+                onClick = {
+                    nombre = ""
+                    precio = ""
+                    cantidad = ""
+                    errorMensaje = null
+                    mostrarResumen = false
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("LIMPIAR")
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
