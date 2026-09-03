@@ -249,10 +249,10 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 val pFinalTexto = if (redondear) "${pPonderado.roundToInt()}" else String.format(Locale.US, "%.2f", pPonderado)
 
                 val (observacion, chipBgColor, chipTextColor) = when {
-                    pFinalValor >= 17f -> Triple("EXCELENTE", Color(0xFFE8F5E9), Color(0xFF1B5E20))
-                    pFinalValor >= 13f -> Triple("APROBADO", Color(0xFFE8F5E9), Color(0xFF2E7D32))
-                    pFinalValor >= 10f -> Triple("EN RECUPERACIÓN", Color(0xFFFFF8E1), Color(0xFFF57F17))
-                    else -> Triple("DESAPROBADO", Color(0xFFFFEBEE), Color(0xFFC62828))
+                    pFinalValor >= 17f -> Triple("EXCELENTE", Color(0xFFD1E7DD), Color(0xFF0F5132))
+                    pFinalValor >= 13f -> Triple("APROBADO", Color(0xFFD1E7DD), Color(0xFF198754))
+                    pFinalValor >= 10f -> Triple("EN RECUPERACIÓN", Color(0xFFFFF3CD), Color(0xFF856404))
+                    else -> Triple("DESAPROBADO", Color(0xFFF8D7DA), Color(0xFF842029))
                 }
 
                 Card(
@@ -304,7 +304,7 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                             color = chipBgColor,
                             modifier = Modifier.border(
                                 width = 1.dp,
-                                color = chipTextColor.copy(alpha = 0.2f),
+                                color = chipTextColor.copy(alpha = 0.25f),
                                 shape = RoundedCornerShape(16.dp)
                             )
                         ) {
@@ -328,7 +328,7 @@ fun RegistroNotasScreen(modifier: Modifier = Modifier) {
                 ) {
                     Text(
                         text = "✓ Promedio calculado correctamente",
-                        color = Color(0xFF2E7D32),
+                        color = Color(0xFF198754),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -400,7 +400,7 @@ fun FilaCursoSlider(
                 color = badgeFondo
             ) {
                 Text(
-                    text = "${valor.toInt()}",
+                    text = "${valor.roundToInt()}",
                     color = badgeTexto,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
@@ -411,7 +411,7 @@ fun FilaCursoSlider(
 
         Slider(
             value = valor,
-            onValueChange = onValueChange,
+            onValueChange = { onValueChange(it.roundToInt().toFloat()) },
             valueRange = 0f..20f,
             steps = 19,
             colors = SliderDefaults.colors(
