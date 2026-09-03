@@ -4,10 +4,37 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.faridchavez.lab03registronotas.ui.theme.Lab03RegistroNotasTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,9 +44,164 @@ class MainActivity : ComponentActivity() {
         setContent {
             Lab03RegistroNotasTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Text(text = "Lab03RegistroNotas")
+                    RegistroNotasScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
+    }
+}
+
+@Composable
+fun RegistroNotasScreen(modifier: Modifier = Modifier) {
+    var notaFundamentos by remember { mutableFloatStateOf(0f) }
+    var notaPOO by remember { mutableFloatStateOf(0f) }
+    var notaMoviles by remember { mutableFloatStateOf(0f) }
+    var notaBD by remember { mutableFloatStateOf(0f) }
+
+    val moradoHeader = Color(0xFF5E4B8B)
+    val badgeFondo = Color(0xFFEDE7F6)
+    val badgeTexto = Color(0xFF5E4B8B)
+    val fondoDegradado = Brush.verticalGradient(
+        colors = listOf(Color(0xFFEDE7F6), Color(0xFFF9F7FC), Color.White)
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(fondoDegradado)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(moradoHeader)
+                .padding(horizontal = 20.dp, vertical = 18.dp)
+        ) {
+            Text(
+                text = "Registro de Notas",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = "Notas del ciclo",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF212121)
+            )
+            Text(
+                text = "Desliza para asignar cada nota (0 a 20)",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            FilaCursoSlider(
+                nombreCurso = "Fundamentos de Programación",
+                pesoTexto = "(20%)",
+                valor = notaFundamentos,
+                onValueChange = { notaFundamentos = it },
+                colorPrimario = moradoHeader,
+                badgeFondo = badgeFondo,
+                badgeTexto = badgeTexto
+            )
+
+            FilaCursoSlider(
+                nombreCurso = "Programación Orientada a Objetos",
+                pesoTexto = "(25%)",
+                valor = notaPOO,
+                onValueChange = { notaPOO = it },
+                colorPrimario = moradoHeader,
+                badgeFondo = badgeFondo,
+                badgeTexto = badgeTexto
+            )
+
+            FilaCursoSlider(
+                nombreCurso = "Programación en Móviles",
+                pesoTexto = "(30%)",
+                valor = notaMoviles,
+                onValueChange = { notaMoviles = it },
+                colorPrimario = moradoHeader,
+                badgeFondo = badgeFondo,
+                badgeTexto = badgeTexto
+            )
+
+            FilaCursoSlider(
+                nombreCurso = "Base de Datos",
+                pesoTexto = "(25%)",
+                valor = notaBD,
+                onValueChange = { notaBD = it },
+                colorPrimario = moradoHeader,
+                badgeFondo = badgeFondo,
+                badgeTexto = badgeTexto
+            )
+        }
+    }
+}
+
+@Composable
+fun FilaCursoSlider(
+    nombreCurso: String,
+    pesoTexto: String,
+    valor: Float,
+    onValueChange: (Float) -> Unit,
+    colorPrimario: Color,
+    badgeFondo: Color,
+    badgeTexto: Color
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = nombreCurso,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF212121)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = pesoTexto,
+                    fontSize = 12.sp,
+                    color = colorPrimario
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = badgeFondo
+            ) {
+                Text(
+                    text = "${valor.toInt()}",
+                    color = badgeTexto,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
+                )
+            }
+        }
+
+        Slider(
+            value = valor,
+            onValueChange = onValueChange,
+            valueRange = 0f..20f,
+            steps = 19,
+            colors = SliderDefaults.colors(
+                thumbColor = colorPrimario,
+                activeTrackColor = colorPrimario,
+                inactiveTrackColor = Color(0xFFD6CEE5)
+            )
+        )
     }
 }
