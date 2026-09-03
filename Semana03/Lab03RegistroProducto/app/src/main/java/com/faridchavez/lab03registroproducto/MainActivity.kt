@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.faridchavez.lab03registroproducto.ui.theme.Lab03RegistroProductoTheme
 import java.util.Locale
@@ -91,6 +93,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     errorMensaje = null
                 },
                 label = { Text("Precio (S/)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = errorMensaje != null && (precio.toDoubleOrNull() ?: 0.0) <= 0,
                 modifier = Modifier.weight(1f)
             )
@@ -102,6 +105,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     errorMensaje = null
                 },
                 label = { Text("Cantidad") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 isError = errorMensaje != null && (cantidad.toIntOrNull() ?: 0) <= 0,
                 modifier = Modifier.weight(1f)
             )
