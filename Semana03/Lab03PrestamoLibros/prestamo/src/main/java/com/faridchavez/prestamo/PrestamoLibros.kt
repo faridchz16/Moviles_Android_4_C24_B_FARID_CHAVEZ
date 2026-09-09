@@ -1,6 +1,7 @@
 package com.faridchavez.prestamo
 
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -9,7 +10,7 @@ fun main() {
     val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     formato.isLenient = false
 
-    println("===== PReSTAMO DE LIBROS =====")
+    println("===== PRESTAMO DE LIBROS =====")
     println()
 
     print("Ingrese el titulo del libro: ")
@@ -61,11 +62,64 @@ fun main() {
             println("Fecha de prestamo: $fechaPrestamo")
             println("Fecha de devolucion: $fechaDevolucion")
             println("Fecha de entrega: $fechaEntrega")
+
             println()
             println("Estado: $estado")
             println("Dias de atraso: $diasAtraso")
-            println("Multa por día: S/ %.2f".format(multaPorDia))
+            println("Multa por dia: S/ %.2f".format(multaPorDia))
             println("Multa total: S/ %.2f".format(multaTotal))
+
+            // Mostrar cuadro de multa si existe atraso
+            if (diasAtraso > 0) {
+
+                println()
+                println("============= DETALLE DE MULTA =============")
+                println()
+
+                println(
+                    String.format(
+                        "%-6s %-14s %-14s %-14s",
+                        "DIA",
+                        "FECHA",
+                        "MULTA/DIA",
+                        "ACUMULADO"
+                    )
+                )
+
+                println("------------------------------------------------")
+
+                val calendario = Calendar.getInstance()
+                calendario.time = devolucion
+
+                var acumulado = 0.0
+
+                for (dia in 1..diasAtraso) {
+
+                    // Avanzar un dia despues de la fecha limite
+                    calendario.add(Calendar.DAY_OF_MONTH, 1)
+
+                    acumulado += multaPorDia
+
+                    val fechaActual =
+                        formato.format(calendario.time)
+
+                    println(
+                        String.format(
+                            "%-6d %-14s S/ %-11.2f S/ %-10.2f",
+                            dia,
+                            fechaActual,
+                            multaPorDia,
+                            acumulado
+                        )
+                    )
+                }
+
+                println("------------------------------------------------")
+                println(
+                    "MULTA TOTAL: S/ %.2f".format(multaTotal)
+                )
+            }
+
         }
 
     } catch (e: Exception) {
