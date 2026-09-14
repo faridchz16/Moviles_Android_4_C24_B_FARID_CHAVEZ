@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,6 +43,10 @@ fun PantallaTareas() {
 
     var textoTarea by remember {
         mutableStateOf("")
+    }
+
+    val listaTareas = remember {
+        mutableStateListOf<String>()
     }
 
     Column(
@@ -73,7 +80,12 @@ fun PantallaTareas() {
         )
 
         Button(
-            onClick = {},
+            onClick = {
+                if (textoTarea.isNotBlank()) {
+                    listaTareas.add(textoTarea)
+                    textoTarea = ""
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Agregar tarea")
@@ -84,7 +96,22 @@ fun PantallaTareas() {
         )
 
         Text(
-            text = "Total de tareas: 0"
+            text = "Total de tareas: ${listaTareas.size}"
         )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        LazyColumn {
+
+            items(listaTareas) { tarea ->
+
+                Text(
+                    text = tarea,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
     }
 }
