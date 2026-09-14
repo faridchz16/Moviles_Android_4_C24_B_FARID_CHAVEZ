@@ -251,6 +251,7 @@ fun PantallaTareas() {
         Button(
             onClick = {
                 if (textoTarea.isNotBlank()) {
+
                     listaTareas.add(
                         Tarea(
                             id = contadorId,
@@ -289,8 +290,23 @@ fun PantallaTareas() {
 
                 ItemTarea(
                     tarea = tarea,
-                    onEliminar = {},
-                    onCambiarEstado = {}
+
+                    onEliminar = {
+                        listaTareas.remove(tarea)
+                    },
+
+                    onCambiarEstado = { completada ->
+
+                        val indice = listaTareas.indexOfFirst {
+                            it.id == tarea.id
+                        }
+
+                        if (indice != -1) {
+                            listaTareas[indice] = tarea.copy(
+                                completada = completada
+                            )
+                        }
+                    }
                 )
             }
         }
