@@ -6,16 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Lab05ManejoEstadosTheme {
-                TemperatureDisplay()
+                PantallaTareas()
             }
         }
     }
@@ -166,11 +172,15 @@ fun ItemTarea(
 ) {
 
     Card(
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
     ) {
 
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -188,6 +198,100 @@ fun ItemTarea(
                 onClick = onEliminar
             ) {
                 Text("Eliminar")
+            }
+        }
+    }
+}
+
+@Composable
+fun PantallaTareas() {
+
+    var textoTarea by remember {
+        mutableStateOf("")
+    }
+
+    var contadorId by remember {
+        mutableStateOf(1)
+    }
+
+    val listaTareas = remember {
+        mutableStateListOf<Tarea>()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+
+        Text(
+            text = "Control de Tareas",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        OutlinedTextField(
+            value = textoTarea,
+            onValueChange = {
+                textoTarea = it
+            },
+            label = {
+                Text("Nueva tarea")
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Button(
+            onClick = {
+                if (textoTarea.isNotBlank()) {
+                    listaTareas.add(
+                        Tarea(
+                            id = contadorId,
+                            nombre = textoTarea
+                        )
+                    )
+
+                    contadorId++
+                    textoTarea = ""
+                }
+            }
+        ) {
+            Text("Agregar")
+        }
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        Text(
+            text = "Total de tareas: ${listaTareas.size}"
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        LazyColumn {
+
+            items(
+                items = listaTareas,
+                key = {
+                    it.id
+                }
+            ) { tarea ->
+
+                ItemTarea(
+                    tarea = tarea,
+                    onEliminar = {},
+                    onCambiarEstado = {}
+                )
             }
         }
     }
