@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -146,6 +148,47 @@ fun TemperatureDisplay() {
             }
         ) {
             Text("Resetear")
+        }
+    }
+}
+
+data class Tarea(
+    val id: Int,
+    val nombre: String,
+    val completada: Boolean = false
+)
+
+@Composable
+fun ItemTarea(
+    tarea: Tarea,
+    onEliminar: () -> Unit,
+    onCambiarEstado: (Boolean) -> Unit
+) {
+
+    Card(
+        modifier = Modifier.padding(8.dp)
+    ) {
+
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Checkbox(
+                checked = tarea.completada,
+                onCheckedChange = onCambiarEstado
+            )
+
+            Text(
+                text = tarea.nombre,
+                modifier = Modifier.weight(1f)
+            )
+
+            Button(
+                onClick = onEliminar
+            ) {
+                Text("Eliminar")
+            }
         }
     }
 }
