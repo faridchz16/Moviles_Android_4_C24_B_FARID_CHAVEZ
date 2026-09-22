@@ -33,7 +33,7 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
-            Text("Detalle del elemento $itemId")
+            DetailScreen(itemId)
         }
 
         composable(Screen.Profile.route) {
