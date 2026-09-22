@@ -17,7 +17,7 @@ fun AppNavigation() {
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            Text("Pantalla de inicio")
+            HomeScreen(navController)
         }
 
         composable(Screen.List.route) {
