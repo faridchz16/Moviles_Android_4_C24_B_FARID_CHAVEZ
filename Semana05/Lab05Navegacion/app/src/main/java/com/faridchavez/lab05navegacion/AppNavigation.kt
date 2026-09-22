@@ -1,6 +1,5 @@
 package com.faridchavez.lab05navegacion
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,11 +32,22 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
-            DetailScreen(itemId)
+
+            DetailScreen(
+                itemId = itemId,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Profile.route) {
-            Text("Pantalla de perfil")
+            ProfileScreen(
+                onGoHome = {
+                    navController.popBackStack(
+                        route = Screen.Home.route,
+                        inclusive = false
+                    )
+                }
+            )
         }
     }
 }
