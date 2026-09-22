@@ -21,7 +21,7 @@ fun AppNavigation() {
         }
 
         composable(Screen.List.route) {
-            Text("Pantalla de lista")
+            ListScreen(navController)
         }
 
         composable(
