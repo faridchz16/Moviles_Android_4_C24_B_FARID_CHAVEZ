@@ -19,9 +19,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,118 +33,103 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.faridchavez.clinicasalud.data.listaCitasIniciales
 import com.faridchavez.clinicasalud.model.Cita
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CitasScreen(
     paddingValues: PaddingValues,
+    citas: List<Cita>,
     onMenuClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
             .padding(paddingValues)
-            .padding(horizontal = 20.dp)
+            .background(Color.White)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menú",
-                    tint = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Mis citas",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E1926)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(listaCitasIniciales) { cita ->
-                CitaCardItem(cita = cita)
-            }
-        }
-    }
-}
-
-@Composable
-fun CitaCardItem(cita: Cita) {
-    val colorBarra = if (cita.estado.equals("Confirmada", ignoreCase = true)) {
-        Color(0xFF4A148C)
-    } else {
-        Color.Transparent
-    }
-
-    val colorBadgeFondo = if (cita.estado.equals("Confirmada", ignoreCase = true)) {
-        Color(0xFFE8F5E9)
-    } else {
-        Color(0xFFEEEEEE)
-    }
-
-    val colorBadgeTexto = if (cita.estado.equals("Confirmada", ignoreCase = true)) {
-        Color(0xFF2E7D32)
-    } else {
-        Color(0xFF616161)
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F2F7))
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .width(6.dp)
-                    .height(96.dp)
-                    .background(colorBarra)
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp)
-            ) {
+        TopAppBar(
+            title = {
                 Text(
-                    text = cita.medicoNombre,
+                    text = "Mis citas",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     color = Color(0xFF1E1926)
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${cita.fecha}, ${cita.hora}",
-                    fontSize = 12.sp,
-                    color = Color(0xFF7E768A)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .background(colorBadgeFondo, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = cita.estado,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colorBadgeTexto
+            },
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menú",
+                        tint = Color(0xFF1E1926)
                     )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            items(citas) { cita ->
+                val esConfirmada = cita.estado == "Confirmada"
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F5FA))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Barra lateral indicadora de estado
+                        Box(
+                            modifier = Modifier
+                                .width(4.dp)
+                                .height(44.dp)
+                                .background(
+                                    if (esConfirmada) Color(0xFF4A148C) else Color(0xFF9E9E9E),
+                                    shape = RoundedCornerShape(2.dp)
+                                )
+                        )
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = cita.medicoNombre,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = Color(0xFF1E1926)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${cita.fecha}, ${cita.hora}",
+                                fontSize = 13.sp,
+                                color = Color(0xFF7E768A)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (esConfirmada) Color(0xFFE8F5E9) else Color(0xFFEEEEEE)
+                            ) {
+                                Text(
+                                    text = cita.estado,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (esConfirmada) Color(0xFF2E7D32) else Color(0xFF616161),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

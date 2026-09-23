@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -26,18 +27,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,6 +83,20 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+data class RegistroHistorial(
+    val id: Int,
+    val diagnostico: String,
+    val doctor: String,
+    val especialidad: String,
+    val fecha: String
+)
+
+val historialEjemplo = listOf(
+    RegistroHistorial(1, "Chequeo preventivo anual", "Dr. Luis Vega", "Pediatría", "10 Sep 2026"),
+    RegistroHistorial(2, "Evaluación de arritmia leve", "Dra. Ana Torres", "Cardiología", "15 Ago 2026"),
+    RegistroHistorial(3, "Tratamiento dermatológico", "Dra. Rosa Díaz", "Dermatología", "02 Jul 2026")
+)
+
 @Composable
 fun ClinicaApp() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -81,6 +105,7 @@ fun ClinicaApp() {
     var medicoSeleccionadoId by remember { mutableIntStateOf(1) }
 
     val citas = remember { mutableStateListOf<Cita>().apply { addAll(listaCitasIniciales) } }
+    var ultimaCitaAgendada by remember { mutableStateOf<Cita?>(null) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -198,6 +223,23 @@ fun ClinicaApp() {
                 "Mis citas" -> {
                     CitasScreen(
                         paddingValues = innerPadding,
+                        citas = citas,
+                        onMenuClick = {
+                            scope.launch { drawerState.open() }
+                        }
+                    )
+                }
+                "Historial médico" -> {
+                    HistorialMedicoScreen(
+                        paddingValues = innerPadding,
+                        onMenuClick = {
+                            scope.launch { drawerState.open() }
+                        }
+                    )
+                }
+                "Perfil" -> {
+                    PerfilScreen(
+                        paddingValues = innerPadding,
                         onMenuClick = {
                             scope.launch { drawerState.open() }
                         }
@@ -219,8 +261,17 @@ fun ClinicaApp() {
                             onBackClick = { destinoActual = "Detalle" },
                             onConfirmar = { nuevaCita ->
                                 citas.add(0, nuevaCita)
-                                destinoActual = "Mis citas"
+                                ultimaCitaAgendada = nuevaCita
+                                destinoActual = "Confirmacion"
                             }
+                        )
+                    }
+                }
+                "Confirmacion" -> {
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        ConfirmacionScreen(
+                            cita = ultimaCitaAgendada,
+                            onVerCitasClick = { destinoActual = "Mis citas" }
                         )
                     }
                 }
@@ -273,6 +324,174 @@ fun DrawerMenuItem(
                 fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
                 color = textoColor
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistorialMedicoScreen(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    onMenuClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .background(Color(0xFFFAFAFA))
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    text = "Historial médico",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF1E1926)
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menú",
+                        tint = Color(0xFF1E1926)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(historialEjemplo) { item ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.diagnostico,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = Color(0xFF1E1926)
+                            )
+                            Text(
+                                text = item.fecha,
+                                fontSize = 12.sp,
+                                color = Color(0xFF7E768A)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "${item.doctor} · ${item.especialidad}",
+                            fontSize = 13.sp,
+                            color = Color(0xFF4A148C),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PerfilScreen(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    onMenuClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .background(Color.White)
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    text = "Mi Perfil",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF1E1926)
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menú",
+                        tint = Color(0xFF1E1926)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Box(
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFEDE7F6)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color(0xFF4A148C),
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Juan Pérez", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFF1E1926))
+            Text(text = "juan.perez@clinicasalud.com", color = Color(0xFF7E768A), fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = Color(0xFFEEEEEE))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Tipo de documento:", color = Color(0xFF7E768A), fontSize = 14.sp)
+                Text("DNI", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Número:", color = Color(0xFF7E768A), fontSize = 14.sp)
+                Text("72819234", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Seguro médico:", color = Color(0xFF7E768A), fontSize = 14.sp)
+                Text("Plan Salud Plus", fontWeight = FontWeight.SemiBold, color = Color(0xFF2E7D32), fontSize = 14.sp)
+            }
         }
     }
 }
@@ -537,5 +756,75 @@ fun AgendarCitaScreen(
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+fun ConfirmacionScreen(
+    cita: Cita?,
+    onVerCitasClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(76.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFE8F5E9)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color(0xFF2E7D32),
+                modifier = Modifier.size(42.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "¡Cita agendada!",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1E1926)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = cita?.medicoNombre ?: "Dra. Ana Torres",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF555555)
+        )
+
+        Text(
+            text = "${cita?.fecha ?: "Viernes 27"}, ${cita?.hora ?: "10:30 am"}",
+            fontSize = 14.sp,
+            color = Color(0xFF7E768A)
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        OutlinedButton(
+            onClick = onVerCitasClick,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .width(180.dp)
+                .height(44.dp)
+        ) {
+            Text(
+                text = "Ver mis citas",
+                color = Color(0xFF4A148C),
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
