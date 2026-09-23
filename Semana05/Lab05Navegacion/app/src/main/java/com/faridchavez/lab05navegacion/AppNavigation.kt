@@ -13,8 +13,12 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Login.route
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(navController)
+        }
+
         composable(Screen.Home.route) {
             HomeScreen(navController)
         }
@@ -31,7 +35,7 @@ fun AppNavigation() {
                 }
             )
         ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 1
 
             DetailScreen(
                 itemId = itemId,
@@ -46,6 +50,11 @@ fun AppNavigation() {
                         route = Screen.Home.route,
                         inclusive = false
                     )
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
