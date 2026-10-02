@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     drawerContent = {
                         AppDrawerContent(
                             rutaActual = rutaSeleccionada,
+                            cantidadFavoritos = productos.count { it.esFavorito },
                             onNavegar = { ruta ->
                                 rutaSeleccionada = ruta
                                 scope.launch { drawerState.close() }
