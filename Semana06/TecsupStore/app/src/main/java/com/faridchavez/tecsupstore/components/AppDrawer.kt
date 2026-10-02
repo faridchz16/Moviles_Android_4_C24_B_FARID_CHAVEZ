@@ -139,15 +139,14 @@ fun AppDrawerContent(
             thickness = 1.dp,
         )
 
-        val opciones = listOf(
+        val opcionesPrincipales = listOf(
             DestinoDrawer.Inicio,
             DestinoDrawer.Pedidos,
             DestinoDrawer.Favoritos,
             DestinoDrawer.Perfil,
-            DestinoDrawer.Salir,
         )
 
-        opciones.forEach { item ->
+        opcionesPrincipales.forEach { item ->
             val seleccionado = item.ruta == rutaActual
 
             NavigationDrawerItem(
@@ -191,5 +190,48 @@ fun AppDrawerContent(
                     .padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
+
+        // Espaciador flexible para empujar la opción de cerrar sesión al final
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Divisor previo a la opción de salida
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = Color(0xFFEEEEEE),
+            thickness = 1.dp,
+        )
+
+        // Opción 'Cerrar sesión' con estilo de acción destructiva/advertencia
+        val itemSalir = DestinoDrawer.Salir
+        val salirSeleccionado = itemSalir.ruta == rutaActual
+
+        NavigationDrawerItem(
+            label = {
+                Text(
+                    text = itemSalir.titulo,
+                    fontWeight = if (salirSeleccionado) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 14.sp,
+                )
+            },
+            selected = salirSeleccionado,
+            onClick = { onNavegar(itemSalir.ruta) },
+            icon = {
+                Icon(
+                    imageVector = itemSalir.icono,
+                    contentDescription = itemSalir.titulo,
+                    modifier = Modifier.size(20.dp),
+                )
+            },
+            colors = NavigationDrawerItemDefaults.colors(
+                unselectedIconColor = MaterialTheme.colorScheme.error,
+                unselectedTextColor = MaterialTheme.colorScheme.error,
+                selectedIconColor = MaterialTheme.colorScheme.error,
+                selectedTextColor = MaterialTheme.colorScheme.error,
+                selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
+                unselectedContainerColor = Color.Transparent,
+            ),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
     }
 }
