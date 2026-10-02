@@ -345,6 +345,28 @@ fun InicioScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center
                                     )
+                                    Spacer(Modifier.height(20.dp))
+                                    Button(
+                                        onClick = {
+                                            textoBusqueda = ""
+                                            categoriaSeleccionada = "Todos"
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = VerdeBodega),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "Ver todo el catálogo",
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }
