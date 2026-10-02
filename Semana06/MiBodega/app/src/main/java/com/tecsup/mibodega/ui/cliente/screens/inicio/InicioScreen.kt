@@ -3,6 +3,7 @@ package com.tecsup.mibodega.ui.cliente.screens.inicio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +56,7 @@ import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
  * Pantalla 3: Inicio / Catálogo de Productos.
- * Hito 4: NavigationBar inferior completamente reactiva con cambio de pestaña.
+ * Hito 5: LazyRow de categorías con filtro interactivo en tiempo real.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,8 +71,16 @@ fun InicioScreen(
     var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
     var indicePestana by remember { mutableStateOf(0) }
 
-    val productosEnPares = remember(productos) {
-        productos.chunked(2)
+    val productosFiltrados = remember(productos, categoriaSeleccionada) {
+        if (categoriaSeleccionada == "Todos") {
+            productos
+        } else {
+            productos.filter { it.categoria.equals(categoriaSeleccionada, ignoreCase = true) }
+        }
+    }
+
+    val productosEnPares = remember(productosFiltrados) {
+        productosFiltrados.chunked(2)
     }
 
     Scaffold(
@@ -149,24 +159,41 @@ fun InicioScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            items(productosEnPares) { parDeProductos ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    for (producto in parDeProductos) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            ProductoCard(
-                                producto = producto,
-                                onClick = { onProductoClick(producto) },
-                                onAgregar = { onAgregarProducto(producto) }
-                            )
-                        }
+            if (productosEnPares.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No hay productos en esta categoría",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    if (parDeProductos.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
+                }
+            } else {
+                items(productosEnPares) { parDeProductos ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        for (producto in parDeProductos) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                ProductoCard(
+                                    producto = producto,
+                                    onClick = { onProductoClick(producto) },
+                                    onAgregar = { onAgregarProducto(producto) }
+                                )
+                            }
+                        }
+                        if (parDeProductos.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
