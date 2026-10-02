@@ -131,6 +131,30 @@ fun InicioScreen(
 
     val hayFiltroActivo = textoBusqueda.isNotBlank() || !categoriaSeleccionada.equals("Todos", ignoreCase = true)
 
+    val conteoPorCategoria = remember(productos, textoBusqueda) {
+        val queryNormalizado = textoBusqueda.replace(" ", "").lowercase()
+
+        listaCategorias.associateWith { cat ->
+            productos.count { producto ->
+                val coincideCat = if (cat.equals("Todos", ignoreCase = true)) {
+                    true
+                } else {
+                    producto.categoria.equals(cat, ignoreCase = true)
+                }
+
+                val coincideTexto = if (queryNormalizado.isEmpty()) {
+                    true
+                } else {
+                    val nombreLimpio = producto.nombre.replace(" ", "").lowercase()
+                    val descripcionLimpia = producto.descripcion.replace(" ", "").lowercase()
+                    nombreLimpio.contains(queryNormalizado) || descripcionLimpia.contains(queryNormalizado)
+                }
+
+                coincideCat && coincideTexto
+            }
+        }
+    }
+
     val textoInfoResultados = remember(productosFiltrados.size, textoBusqueda, categoriaSeleccionada) {
         val cantidad = productosFiltrados.size
         val textoLimpio = textoBusqueda.trim()
@@ -231,8 +255,10 @@ fun InicioScreen(
                             contentPadding = PaddingValues(vertical = 8.dp)
                         ) {
                             items(listaCategorias) { categoria ->
+                                val cantidad = conteoPorCategoria[categoria] ?: 0
                                 ChipCategoria(
-                                    texto = categoria,
+                                    nombre = categoria,
+                                    cantidad = cantidad,
                                     seleccionado = categoria == categoriaSeleccionada,
                                     onClick = { categoriaSeleccionada = categoria }
                                 )
@@ -708,7 +734,8 @@ private fun VistaPestanaSecundaria(
 
 @Composable
 private fun ChipCategoria(
-    texto: String,
+    nombre: String,
+    cantidad: Int,
     seleccionado: Boolean,
     onClick: () -> Unit
 ) {
@@ -719,9 +746,14 @@ private fun ChipCategoria(
         modifier = Modifier
             .background(fondo, RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = texto, color = contenido, fontWeight = FontWeight.Medium)
+        Text(
+            text = "$nombre ($cantidad)",
+            color = contenido,
+            fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
+        )
     }
 }
 
