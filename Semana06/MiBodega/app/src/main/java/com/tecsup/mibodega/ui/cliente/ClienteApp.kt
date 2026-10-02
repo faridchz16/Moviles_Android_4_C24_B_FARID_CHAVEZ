@@ -2,6 +2,7 @@ package com.tecsup.mibodega.ui.cliente
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +38,8 @@ object Rutas {
 fun ClienteApp() {
     val navController = rememberNavController()
     var carrito by remember { mutableStateOf(listOf<ItemCarrito>()) }
+    var pestanaDestinoInicio by remember { mutableIntStateOf(0) }
+    var tienePedidoActivo by remember { mutableStateOf(false) }
 
     NavHost(
         navController = navController,
@@ -46,6 +49,7 @@ fun ClienteApp() {
             BienvenidaScreen(
                 onRegistrarse = { navController.navigate(Rutas.REGISTRO) },
                 onIniciarSesion = {
+                    pestanaDestinoInicio = 0
                     navController.navigate(Rutas.INICIO) {
                         popUpTo(Rutas.BIENVENIDA) { inclusive = true }
                     }
@@ -58,6 +62,7 @@ fun ClienteApp() {
             RegistroScreen(
                 onVolver = { navController.popBackStack() },
                 onCrearCuenta = { _, _, _, _ ->
+                    pestanaDestinoInicio = 0
                     navController.navigate(Rutas.INICIO) {
                         popUpTo(Rutas.BIENVENIDA) { inclusive = true }
                     }
@@ -68,6 +73,8 @@ fun ClienteApp() {
         composable(Rutas.INICIO) {
             InicioScreen(
                 cantidadCarrito = carrito.sumOf { it.cantidad },
+                pestanaInicial = pestanaDestinoInicio,
+                tienePedidoRealizado = tienePedidoActivo,
                 onVerCarrito = { navController.navigate(Rutas.CARRITO) },
                 onProductoClick = { producto ->
                     navController.navigate(Rutas.detalle(producto.id))
@@ -77,6 +84,8 @@ fun ClienteApp() {
                 },
                 onCerrarSesion = {
                     carrito = emptyList()
+                    tienePedidoActivo = false
+                    pestanaDestinoInicio = 0
                     navController.navigate(Rutas.BIENVENIDA) {
                         popUpTo(Rutas.INICIO) { inclusive = true }
                     }
@@ -125,6 +134,7 @@ fun ClienteApp() {
             DatosEntregaScreen(
                 onVolver = { navController.popBackStack() },
                 onConfirmarPedido = {
+                    tienePedidoActivo = true
                     navController.navigate(Rutas.CONFIRMACION)
                 }
             )
@@ -134,6 +144,14 @@ fun ClienteApp() {
             ConfirmacionScreen(
                 onVolverInicio = {
                     carrito = emptyList()
+                    pestanaDestinoInicio = 0
+                    navController.navigate(Rutas.INICIO) {
+                        popUpTo(Rutas.INICIO) { inclusive = true }
+                    }
+                },
+                onVerEstadoPedido = {
+                    carrito = emptyList()
+                    pestanaDestinoInicio = 2
                     navController.navigate(Rutas.INICIO) {
                         popUpTo(Rutas.INICIO) { inclusive = true }
                     }

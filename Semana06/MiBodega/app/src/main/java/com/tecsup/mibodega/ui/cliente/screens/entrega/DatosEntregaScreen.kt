@@ -1,5 +1,7 @@
 package com.tecsup.mibodega.ui.cliente.screens.entrega
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,16 +16,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notes
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,31 +32,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tecsup.mibodega.ui.componentes.BotonPrimario
-import com.tecsup.mibodega.ui.theme.BodegaTheme
 import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
-/**
- * Pantalla 6: Datos de Entrega del Pedido.
- * Hito 8: Formulario de entrega con validación reactiva y confirmación.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatosEntregaScreen(
     onVolver: () -> Unit,
     onConfirmarPedido: () -> Unit
 ) {
-    var direccion by remember { mutableStateOf("") }
-    var referencia by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var notas by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("Juan Pérez") }
+    var telefono by remember { mutableStateOf("987 654 321") }
+    var direccion by remember { mutableStateOf("Av. Los Olivos 123") }
+    var referencia by remember { mutableStateOf("Frente al parque") }
 
-    val formularioValido = direccion.isNotBlank() && telefono.isNotBlank()
+    val metodosPago = listOf("Efectivo al entregar", "Yape", "Plin")
+    var metodoSeleccionado by remember { mutableStateOf(metodosPago[0]) }
+
+    val formularioValido = nombre.isNotBlank() && telefono.isNotBlank() && direccion.isNotBlank()
 
     Column(
         modifier = Modifier
@@ -83,25 +81,17 @@ fun DatosEntregaScreen(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp)
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Text(
-                text = "¿A dónde llevamos tu pedido?",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(Modifier.height(16.dp))
-
+            Text("Nombre", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
-                value = direccion,
-                onValueChange = { direccion = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Dirección de entrega *") },
-                leadingIcon = { Icon(Icons.Default.Home, contentDescription = null) },
+                value = nombre,
+                onValueChange = { nombre = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = GrisClaro,
                     focusedContainerColor = GrisClaro,
@@ -111,32 +101,14 @@ fun DatosEntregaScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = referencia,
-                onValueChange = { referencia = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Referencia (opcional)") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = GrisClaro,
-                    focusedContainerColor = GrisClaro,
-                    focusedBorderColor = VerdeBodega
-                )
-            )
-
-            Spacer(Modifier.height(12.dp))
-
+            Text("Teléfono", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
                 value = telefono,
                 onValueChange = { telefono = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Teléfono de contacto *") },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = GrisClaro,
                     focusedContainerColor = GrisClaro,
@@ -146,14 +118,13 @@ fun DatosEntregaScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            Text("Dirección", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
-                value = notas,
-                onValueChange = { notas = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Instrucciones para el repartidor (opcional)") },
-                leadingIcon = { Icon(Icons.Default.Notes, contentDescription = null) },
-                maxLines = 3,
-                shape = RoundedCornerShape(12.dp),
+                value = direccion,
+                onValueChange = { direccion = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = GrisClaro,
                     focusedContainerColor = GrisClaro,
@@ -161,26 +132,69 @@ fun DatosEntregaScreen(
                 )
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(12.dp))
+
+            Text("Referencia", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedTextField(
+                value = referencia,
+                onValueChange = { referencia = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = GrisClaro,
+                    focusedContainerColor = GrisClaro,
+                    focusedBorderColor = VerdeBodega
+                )
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "Método de pago",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            metodosPago.forEach { metodo ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .border(
+                            1.dp,
+                            if (metodo == metodoSeleccionado) VerdeBodega else Color.LightGray.copy(alpha = 0.5f),
+                            RoundedCornerShape(10.dp)
+                        )
+                        .clickable { metodoSeleccionado = metodo }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = (metodo == metodoSeleccionado),
+                        onClick = { metodoSeleccionado = metodo },
+                        colors = RadioButtonDefaults.colors(selectedColor = VerdeBodega)
+                    )
+                    Text(
+                        text = metodo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
         }
 
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
             BotonPrimario(
                 texto = "Confirmar pedido",
                 onClick = onConfirmarPedido,
                 habilitado = formularioValido
             )
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun DatosEntregaPreview() {
-    BodegaTheme {
-        DatosEntregaScreen(
-            onVolver = {},
-            onConfirmarPedido = {}
-        )
     }
 }
