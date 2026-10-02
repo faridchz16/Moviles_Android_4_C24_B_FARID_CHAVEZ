@@ -6,15 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -54,12 +53,8 @@ import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
- * Pantalla 3: Inicio / Productos (mockup "Cliente").
- * La más completa: Scaffold (topBar + bottomBar), LazyRow de categorías
- * y LazyVerticalGrid de productos.
- *
- * @param productos lista completa (fake por ahora, luego vendrá de un ViewModel)
- * @param cantidadCarrito para el badge del carrito en la topBar
+ * Pantalla 3: Inicio / Catálogo de Productos.
+ * Hito 3: Productos de ejemplo mostrados mediante LazyColumn con Scaffold.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,13 +65,11 @@ fun InicioScreen(
     onProductoClick: (Producto) -> Unit,
     onAgregarProducto: (Producto) -> Unit
 ) {
-    var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
     var textoBusqueda by remember { mutableStateOf("") }
+    var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
 
-    val productosFiltrados = productos.filter { producto ->
-        val coincideCategoria = categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada
-        val coincideBusqueda = producto.nombre.contains(textoBusqueda, ignoreCase = true)
-        coincideCategoria && coincideBusqueda
+    val productosEnPares = remember(productos) {
+        productos.chunked(2)
     }
 
     Scaffold(
@@ -98,71 +91,80 @@ fun InicioScreen(
                 }
             )
         },
-        bottomBar = { BarraInferior() }
+        bottomBar = { BarraInferiorEstatica() }
     ) { paddingInterno ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingInterno)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            OutlinedTextField(
-                value = textoBusqueda,
-                onValueChange = { textoBusqueda = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                placeholder = { Text("Buscar productos...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = GrisClaro,
-                    focusedContainerColor = GrisClaro,
-                    unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                    focusedBorderColor = VerdeBodega
-                )
-            )
-
-            Text(
-                text = "Productos destacados",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 20.dp, bottom = 4.dp)
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(listaCategorias) { categoria ->
-                    ChipCategoria(
-                        texto = categoria,
-                        seleccionado = categoria == categoriaSeleccionada,
-                        onClick = { categoriaSeleccionada = categoria }
+            item {
+                OutlinedTextField(
+                    value = textoBusqueda,
+                    onValueChange = { textoBusqueda = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    placeholder = { Text("Buscar productos...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = GrisClaro,
+                        focusedContainerColor = GrisClaro,
+                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                        focusedBorderColor = VerdeBodega
                     )
+                )
+
+                Text(
+                    text = "Productos destacados",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 20.dp, bottom = 4.dp)
+                )
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(listaCategorias) { categoria ->
+                        ChipCategoria(
+                            texto = categoria,
+                            seleccionado = categoria == categoriaSeleccionada,
+                            onClick = { categoriaSeleccionada = categoria }
+                        )
+                    }
                 }
+
+                Spacer(Modifier.height(8.dp))
             }
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(productosFiltrados) { producto ->
-                    ProductoCard(
-                        producto = producto,
-                        onClick = { onProductoClick(producto) },
-                        onAgregar = { onAgregarProducto(producto) }
-                    )
+            items(productosEnPares) { parDeProductos ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    for (producto in parDeProductos) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            ProductoCard(
+                                producto = producto,
+                                onClick = { onProductoClick(producto) },
+                                onAgregar = { onAgregarProducto(producto) }
+                            )
+                        }
+                    }
+                    if (parDeProductos.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
     }
 }
-
-// Sub-composables PRIVADOS: solo los usa esta pantalla.
 
 @Composable
 private fun ChipCategoria(
@@ -184,19 +186,18 @@ private fun ChipCategoria(
 }
 
 @Composable
-private fun BarraInferior() {
-    var seleccionado by remember { mutableStateOf(0) }
-    val items = listOf(
-        Triple("Inicio", Icons.Default.Home, 0),
-        Triple("Categorías", Icons.Default.List, 1),
-        Triple("Pedidos", Icons.Default.Receipt, 2),
-        Triple("Perfil", Icons.Default.Person, 3)
-    )
+private fun BarraInferiorEstatica() {
     NavigationBar {
-        items.forEach { (etiqueta, icono, indice) ->
+        val items = listOf(
+            Triple("Inicio", Icons.Default.Home, true),
+            Triple("Categorías", Icons.Default.List, false),
+            Triple("Pedidos", Icons.Default.Receipt, false),
+            Triple("Perfil", Icons.Default.Person, false)
+        )
+        items.forEach { (etiqueta, icono, seleccionado) ->
             NavigationBarItem(
-                selected = seleccionado == indice,
-                onClick = { seleccionado = indice },
+                selected = seleccionado,
+                onClick = { /* Pendiente para el Commit 4 */ },
                 icon = { Icon(icono, contentDescription = etiqueta) },
                 label = { Text(etiqueta) },
                 colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
@@ -213,7 +214,7 @@ private fun BarraInferior() {
 private fun InicioPreview() {
     BodegaTheme {
         InicioScreen(
-            cantidadCarrito = 3,
+            cantidadCarrito = 0,
             onVerCarrito = {},
             onProductoClick = {},
             onAgregarProducto = {}
