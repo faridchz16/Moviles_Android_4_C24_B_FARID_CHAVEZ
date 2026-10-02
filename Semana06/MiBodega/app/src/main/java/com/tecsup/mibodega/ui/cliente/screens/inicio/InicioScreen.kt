@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -55,6 +56,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -125,6 +127,22 @@ fun InicioScreen(
 
     val productosEnPares = remember(productosFiltrados) {
         productosFiltrados.chunked(2)
+    }
+
+    val hayFiltroActivo = textoBusqueda.isNotBlank() || !categoriaSeleccionada.equals("Todos", ignoreCase = true)
+
+    val textoInfoResultados = remember(productosFiltrados.size, textoBusqueda, categoriaSeleccionada) {
+        val cantidad = productosFiltrados.size
+        val textoLimpio = textoBusqueda.trim()
+        val tieneTexto = textoLimpio.isNotBlank()
+        val tieneCategoria = !categoriaSeleccionada.equals("Todos", ignoreCase = true)
+
+        when {
+            tieneTexto && tieneCategoria -> "$cantidad productos encontrados para \"$textoLimpio\" en $categoriaSeleccionada"
+            tieneTexto -> "$cantidad productos encontrados para \"$textoLimpio\""
+            tieneCategoria -> "$cantidad productos encontrados en $categoriaSeleccionada"
+            else -> "$cantidad productos disponibles"
+        }
     }
 
     Scaffold(
@@ -221,20 +239,50 @@ fun InicioScreen(
                             }
                         }
 
-                        Row(
+                        // Barra informativa de resultados y botón para restablecer filtros
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp, bottom = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(top = 10.dp, bottom = 6.dp)
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (hayFiltroActivo) "Resultados de búsqueda" else "Productos destacados",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                if (hayFiltroActivo) {
+                                    TextButton(
+                                        onClick = {
+                                            textoBusqueda = ""
+                                            categoriaSeleccionada = "Todos"
+                                        },
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = VerdeBodega
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = "Restablecer filtros",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = VerdeBodega,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+
                             Text(
-                                text = if (textoBusqueda.isNotBlank()) "Resultados de búsqueda" else "Productos destacados",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${productosFiltrados.size} productos",
+                                text = textoInfoResultados,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
