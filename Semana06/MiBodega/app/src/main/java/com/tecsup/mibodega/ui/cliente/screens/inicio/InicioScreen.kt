@@ -54,7 +54,7 @@ import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
  * Pantalla 3: Inicio / Catálogo de Productos.
- * Hito 3: Productos de ejemplo mostrados mediante LazyColumn con Scaffold.
+ * Hito 4: NavigationBar inferior completamente reactiva con cambio de pestaña.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +67,7 @@ fun InicioScreen(
 ) {
     var textoBusqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
+    var indicePestana by remember { mutableStateOf(0) }
 
     val productosEnPares = remember(productos) {
         productos.chunked(2)
@@ -91,7 +92,14 @@ fun InicioScreen(
                 }
             )
         },
-        bottomBar = { BarraInferiorEstatica() }
+        bottomBar = {
+            BarraInferior(
+                indiceSeleccionado = indicePestana,
+                onSeleccionarIndice = { nuevoIndice ->
+                    indicePestana = nuevoIndice
+                }
+            )
+        }
     ) { paddingInterno ->
         LazyColumn(
             modifier = Modifier
@@ -186,18 +194,21 @@ private fun ChipCategoria(
 }
 
 @Composable
-private fun BarraInferiorEstatica() {
+private fun BarraInferior(
+    indiceSeleccionado: Int,
+    onSeleccionarIndice: (Int) -> Unit
+) {
+    val items = listOf(
+        Triple("Inicio", Icons.Default.Home, 0),
+        Triple("Categorías", Icons.Default.List, 1),
+        Triple("Pedidos", Icons.Default.Receipt, 2),
+        Triple("Perfil", Icons.Default.Person, 3)
+    )
     NavigationBar {
-        val items = listOf(
-            Triple("Inicio", Icons.Default.Home, true),
-            Triple("Categorías", Icons.Default.List, false),
-            Triple("Pedidos", Icons.Default.Receipt, false),
-            Triple("Perfil", Icons.Default.Person, false)
-        )
-        items.forEach { (etiqueta, icono, seleccionado) ->
+        items.forEach { (etiqueta, icono, indice) ->
             NavigationBarItem(
-                selected = seleccionado,
-                onClick = { /* Pendiente para el Commit 4 */ },
+                selected = indiceSeleccionado == indice,
+                onClick = { onSeleccionarIndice(indice) },
                 icon = { Icon(icono, contentDescription = etiqueta) },
                 label = { Text(etiqueta) },
                 colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
