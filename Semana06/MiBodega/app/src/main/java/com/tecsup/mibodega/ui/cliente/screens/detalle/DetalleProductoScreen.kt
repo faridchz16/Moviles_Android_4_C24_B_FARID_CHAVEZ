@@ -1,88 +1,119 @@
 package com.tecsup.mibodega.ui.cliente.screens.detalle
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.mibodega.ui.cliente.modelo.Producto
-import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
-import com.tecsup.mibodega.ui.componentes.BotonPrimario
-import com.tecsup.mibodega.ui.componentes.SelectorCantidad
-import com.tecsup.mibodega.ui.theme.BodegaTheme
-import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.RojoPrecio
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
-/**
- * Pantalla 4: Detalle del producto (mockup "Cliente").
- * Hito 6: Navegación con argumento productoId y selección reactiva de cantidad con cálculo de subtotal.
- */
 @Composable
 fun DetalleProductoScreen(
     producto: Producto,
     onVolver: () -> Unit,
     onAgregarAlCarrito: (Producto, Int) -> Unit
 ) {
-    var cantidad by remember { mutableStateOf(1) }
-    val totalPorCantidad = producto.precio * cantidad
+    var cantidad by remember { mutableIntStateOf(1) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
     ) {
-        EncabezadoDetalle(onVolver = onVolver)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onVolver) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+            }
+            IconButton(onClick = { }) {
+                Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorito")
+            }
+        }
 
-        ImagenProducto()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(230.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = producto.imagenRes),
+                contentDescription = producto.nombre,
+                modifier = Modifier.size(190.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text(
                 text = producto.nombre,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = producto.presentacion,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "S/ %.2f".format(producto.precio),
-                style = MaterialTheme.typography.displayMedium.copy(fontSize = 26.sp),
+                text = "S/ ${String.format("%.2f", producto.precio)}",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
                 color = RojoPrecio
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
             Text(
                 text = producto.descripcion,
@@ -90,70 +121,60 @@ fun DetalleProductoScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(20.dp))
-
-            SelectorCantidad(
-                cantidad = cantidad,
-                onIncrementar = { cantidad++ },
-                onDecrementar = { if (cantidad > 1) cantidad-- }
-            )
-
             Spacer(Modifier.weight(1f))
 
-            BotonPrimario(
-                texto = "Agregar al carrito • S/ %.2f".format(totalPorCantidad),
-                onClick = { onAgregarAlCarrito(producto, cantidad) }
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier
+                        .border(1.dp, Color.LightGray.copy(alpha = 0.6f), CircleShape)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { if (cantidad > 1) cantidad-- },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Disminuir")
+                    }
 
-            Spacer(Modifier.height(24.dp))
+                    Text(
+                        text = "$cantidad",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 14.dp)
+                    )
+
+                    IconButton(
+                        onClick = { cantidad++ },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Aumentar")
+                    }
+                }
+            }
+
+            Button(
+                onClick = { onAgregarAlCarrito(producto, cantidad) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = VerdeBodega),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Agregar al carrito",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+            }
+
+            Spacer(Modifier.height(18.dp))
         }
-    }
-}
-
-@Composable
-private fun EncabezadoDetalle(onVolver: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onVolver) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-        }
-        IconButton(onClick = { /* Favoritos */ }) {
-            Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorito")
-        }
-    }
-}
-
-@Composable
-private fun ImagenProducto() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1.4f)
-            .background(GrisClaro),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.ShoppingBasket,
-            contentDescription = null,
-            tint = VerdeBodega,
-            modifier = Modifier.size(80.dp)
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun DetalleProductoPreview() {
-    BodegaTheme {
-        DetalleProductoScreen(
-            producto = listaProductosFake.first { it.nombre == "Coca-Cola Original" },
-            onVolver = {},
-            onAgregarAlCarrito = { _, _ -> }
-        )
     }
 }

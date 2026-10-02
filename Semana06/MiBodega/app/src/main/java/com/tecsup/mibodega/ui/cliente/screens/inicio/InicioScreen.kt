@@ -57,6 +57,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +86,7 @@ fun InicioScreen(
     cantidadCarrito: Int,
     pestanaInicial: Int = 0,
     tienePedidoRealizado: Boolean = false,
+    onCambiarPestana: (Int) -> Unit = {},
     onVerCarrito: () -> Unit,
     onProductoClick: (Producto) -> Unit,
     onAgregarProducto: (Producto) -> Unit,
@@ -92,7 +94,11 @@ fun InicioScreen(
 ) {
     var textoBusqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
-    var indicePestana by remember(pestanaInicial) { mutableIntStateOf(pestanaInicial) }
+    var indicePestana by remember { mutableIntStateOf(pestanaInicial) }
+
+    LaunchedEffect(pestanaInicial) {
+        indicePestana = pestanaInicial
+    }
 
     val productosFiltrados = remember(productos, categoriaSeleccionada, textoBusqueda) {
         productos.filter { producto ->
@@ -149,7 +155,10 @@ fun InicioScreen(
         bottomBar = {
             BarraInferior(
                 indiceSeleccionado = indicePestana,
-                onSeleccionarIndice = { indicePestana = it }
+                onSeleccionarIndice = { nuevoIndice ->
+                    indicePestana = nuevoIndice
+                    onCambiarPestana(nuevoIndice)
+                }
             )
         }
     ) { paddingInterno ->
@@ -318,6 +327,7 @@ fun InicioScreen(
                                 .clickable {
                                     categoriaSeleccionada = cat
                                     indicePestana = 0
+                                    onCambiarPestana(0)
                                 },
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(containerColor = GrisClaro)

@@ -75,7 +75,13 @@ fun ClienteApp() {
                 cantidadCarrito = carrito.sumOf { it.cantidad },
                 pestanaInicial = pestanaDestinoInicio,
                 tienePedidoRealizado = tienePedidoActivo,
-                onVerCarrito = { navController.navigate(Rutas.CARRITO) },
+                onCambiarPestana = { nuevaPestana ->
+                    pestanaDestinoInicio = nuevaPestana
+                },
+                onVerCarrito = {
+                    pestanaDestinoInicio = 0
+                    navController.navigate(Rutas.CARRITO)
+                },
                 onProductoClick = { producto ->
                     navController.navigate(Rutas.detalle(producto.id))
                 },
@@ -114,7 +120,10 @@ fun ClienteApp() {
         composable(Rutas.CARRITO) {
             CarritoScreen(
                 carrito = carrito,
-                onVolver = { navController.popBackStack() },
+                onVolver = {
+                    pestanaDestinoInicio = 0
+                    navController.popBackStack()
+                },
                 onIncrementar = { producto ->
                     carrito = sumarUno(carrito, producto)
                 },

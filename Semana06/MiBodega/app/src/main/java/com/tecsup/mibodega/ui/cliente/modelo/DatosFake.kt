@@ -1,48 +1,53 @@
 package com.tecsup.mibodega.ui.cliente.modelo
 
-/**
- * Datos de ejemplo (fake) para mostrar la UI sin base de datos.
- * Cuando conecten Room o una API, este archivo se reemplaza por
- * un Repository real, pero las pantallas no cambian porque ya
- * reciben una List<Producto> como parámetro.
- */
+import com.tecsup.mibodega.R
+
 val listaCategorias = listOf("Todos", "Bebidas", "Abarrotes", "Snacks")
 
 val listaProductosFake = listOf(
     Producto(
         id = 1,
         nombre = "Arroz Costeño",
-        descripcion = "Arroz extra, grano largo, ideal para el día a día.",
+        presentacion = "1 kg",
         precio = 4.50,
-        categoria = "Abarrotes"
+        categoria = "Abarrotes",
+        descripcion = "Arroz extra blanco de grano seleccionado, ideal para tus comidas familiares.",
+        imagenRes = R.drawable.arroz_costeno
     ),
     Producto(
         id = 2,
         nombre = "Aceite Primor",
-        descripcion = "Aceite vegetal 1 L, alto en vitamina E.",
+        presentacion = "1 L",
         precio = 8.90,
-        categoria = "Abarrotes"
+        categoria = "Abarrotes",
+        descripcion = "Aceite vegetal premium 100% puro para todo tipo de preparaciones.",
+        imagenRes = R.drawable.aceite_primor
     ),
     Producto(
         id = 3,
         nombre = "Leche Gloria",
-        descripcion = "Leche evaporada entera 1 L.",
+        presentacion = "1 L",
         precio = 5.20,
-        categoria = "Abarrotes"
+        categoria = "Abarrotes",
+        descripcion = "Leche evaporada entera enriquecida con vitaminas A y D.",
+        imagenRes = R.drawable.leche_gloria
     ),
     Producto(
         id = 4,
         nombre = "Galleta Oreo",
-        descripcion = "Galletas de chocolate rellenas 126 g.",
+        presentacion = "126 g",
         precio = 3.50,
-        categoria = "Snacks"
+        categoria = "Snacks",
+        descripcion = "Galletas crocantes sabor chocolate rellenas de deliciosa crema dulce.",
+        imagenRes = R.drawable.galleta_oreo
     ),
     Producto(
         id = 5,
         nombre = "Coca-Cola Original",
-        descripcion = "Bebida gaseosa sabor cola. Ideal para compartir en familia.",
+        presentacion = "1.5 L",
         precio = 6.50,
-        categoria = "Bebidas"
+        categoria = "Bebidas",
+        descripcion = "Bebida gaseosa sabor cola. Ideal para compartir en familia.",
+        imagenRes = R.drawable.coca_cola
     )
 )
-
