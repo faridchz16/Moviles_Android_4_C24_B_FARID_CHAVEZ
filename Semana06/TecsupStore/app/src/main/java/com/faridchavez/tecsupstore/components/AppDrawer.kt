@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,11 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 sealed class DestinoDrawer(val ruta: String, val titulo: String, val icono: ImageVector) {
-    object Inicio : DestinoDrawer("inicio", "Inicio", Icons.Outlined.Circle)
-    object Pedidos : DestinoDrawer("pedidos", "Mis pedidos", Icons.Outlined.Circle)
-    object Favoritos : DestinoDrawer("favoritos", "Favoritos", Icons.Outlined.Circle)
-    object Perfil : DestinoDrawer("perfil", "Perfil", Icons.Outlined.Circle)
-    object Salir : DestinoDrawer("salir", "Cerrar sesion", Icons.Outlined.Circle)
+    object Inicio : DestinoDrawer("inicio", "Inicio", Icons.Default.Home)
+    object Pedidos : DestinoDrawer("pedidos", "Mis pedidos", Icons.Default.ShoppingBag)
+    object Favoritos : DestinoDrawer("favoritos", "Favoritos", Icons.Default.Favorite)
+    object Perfil : DestinoDrawer("perfil", "Perfil", Icons.Default.Person)
+    object Salir : DestinoDrawer("salir", "Cerrar sesion", Icons.AutoMirrored.Filled.ExitToApp)
 }
 
 @Composable
@@ -42,16 +46,16 @@ fun AppDrawerContent(
     rutaActual: String,
     onNavegar: (String) -> Unit,
     modifier: Modifier = Modifier,
-    cantidadFavoritos: Int = 0
+    cantidadFavoritos: Int = 0,
 ) {
     ModalDrawerSheet(
         modifier = modifier.width(310.dp),
-        drawerContainerColor = Color.White
+        drawerContainerColor = Color.White,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 24.dp)
+                .padding(horizontal = 20.dp, vertical = 24.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -120,7 +124,7 @@ fun AppDrawerContent(
                     )
                 },
                 badge = {
-                    if (item == DestinoDrawer.Favoritos && cantidadFavoritos > 0) {
+                    if ((item == DestinoDrawer.Favoritos) && (cantidadFavoritos > 0)) {
                         Badge(
                             containerColor = Color(0xFF5E2B88),
                             contentColor = Color.White
