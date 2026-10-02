@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -43,9 +42,7 @@ import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
  * Pantalla 4: Detalle del producto (mockup "Cliente").
- * Guarda su propia cantidad seleccionada (remember) mientras el usuario
- * decide cuánto quiere; solo al tocar "Agregar al carrito" le avisa
- * a ClienteApp cuánto agregar.
+ * Hito 6: Navegación con argumento productoId y selección reactiva de cantidad con cálculo de subtotal.
  */
 @Composable
 fun DetalleProductoScreen(
@@ -54,6 +51,7 @@ fun DetalleProductoScreen(
     onAgregarAlCarrito: (Producto, Int) -> Unit
 ) {
     var cantidad by remember { mutableStateOf(1) }
+    val totalPorCantidad = producto.precio * cantidad
 
     Column(
         modifier = Modifier
@@ -103,7 +101,7 @@ fun DetalleProductoScreen(
             Spacer(Modifier.weight(1f))
 
             BotonPrimario(
-                texto = "Agregar al carrito",
+                texto = "Agregar al carrito • S/ %.2f".format(totalPorCantidad),
                 onClick = { onAgregarAlCarrito(producto, cantidad) }
             )
 
@@ -124,7 +122,7 @@ private fun EncabezadoDetalle(onVolver: () -> Unit) {
         IconButton(onClick = onVolver) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
         }
-        IconButton(onClick = { /* TODO: guardar como favorito */ }) {
+        IconButton(onClick = { /* Favoritos */ }) {
             Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorito")
         }
     }
@@ -132,8 +130,6 @@ private fun EncabezadoDetalle(onVolver: () -> Unit) {
 
 @Composable
 private fun ImagenProducto() {
-    // Placeholder de imagen: reemplázalo por Image(painterResource(...))
-    // cuando tengan la foto real de cada producto.
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -161,4 +157,3 @@ private fun DetalleProductoPreview() {
         )
     }
 }
-
