@@ -101,18 +101,22 @@ fun InicioScreen(
     }
 
     val productosFiltrados = remember(productos, categoriaSeleccionada, textoBusqueda) {
+        val queryNormalizado = textoBusqueda.replace(" ", "").lowercase()
+
         productos.filter { producto ->
-            val coincideCategoria = if (categoriaSeleccionada == "Todos") {
+            val coincideCategoria = if (categoriaSeleccionada.equals("Todos", ignoreCase = true)) {
                 true
             } else {
                 producto.categoria.equals(categoriaSeleccionada, ignoreCase = true)
             }
 
-            val coincideTexto = if (textoBusqueda.isBlank()) {
+            val coincideTexto = if (queryNormalizado.isEmpty()) {
                 true
             } else {
-                producto.nombre.contains(textoBusqueda.trim(), ignoreCase = true) ||
-                        producto.descripcion.contains(textoBusqueda.trim(), ignoreCase = true)
+                val nombreLimpio = producto.nombre.replace(" ", "").lowercase()
+                val descripcionLimpia = producto.descripcion.replace(" ", "").lowercase()
+
+                nombreLimpio.contains(queryNormalizado) || descripcionLimpia.contains(queryNormalizado)
             }
 
             coincideCategoria && coincideTexto
