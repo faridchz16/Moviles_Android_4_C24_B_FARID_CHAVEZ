@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tecsup.mibodega.ui.componentes.BotonPrimario
@@ -39,9 +40,8 @@ import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
- * Pantalla 2: Registro de datos (mockup "Cliente").
- * Guarda su propio estado de formulario (remember) porque solo esta
- * pantalla lo necesita. Al enviar, entrega los datos ya listos.
+ * Pantalla 2: Registro de datos (PantallaCrearCuenta).
+ * Maneja estado local con validaciones antes de disparar el callback.
  */
 @Composable
 fun RegistroScreen(
@@ -52,6 +52,7 @@ fun RegistroScreen(
     var telefono by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
+    var errorMensaje by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -84,7 +85,10 @@ fun RegistroScreen(
         CampoTexto(
             etiqueta = "Nombre completo",
             valor = nombre,
-            onValorCambia = { nombre = it },
+            onValorCambia = {
+                nombre = it
+                if (errorMensaje != null) errorMensaje = null
+            },
             placeholder = "Juan Pérez"
         )
         Spacer(Modifier.height(16.dp))
@@ -92,7 +96,10 @@ fun RegistroScreen(
         CampoTexto(
             etiqueta = "Teléfono",
             valor = telefono,
-            onValorCambia = { telefono = it },
+            onValorCambia = {
+                telefono = it
+                if (errorMensaje != null) errorMensaje = null
+            },
             placeholder = "987 654 321",
             teclado = KeyboardType.Phone
         )
@@ -101,7 +108,10 @@ fun RegistroScreen(
         CampoTexto(
             etiqueta = "Dirección de entrega",
             valor = direccion,
-            onValorCambia = { direccion = it },
+            onValorCambia = {
+                direccion = it
+                if (errorMensaje != null) errorMensaje = null
+            },
             placeholder = "Av. Los Olivos 123"
         )
         Spacer(Modifier.height(16.dp))
@@ -113,11 +123,28 @@ fun RegistroScreen(
             placeholder = "Frente al parque"
         )
 
+        if (errorMensaje != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = errorMensaje.orEmpty(),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+
         Spacer(Modifier.height(28.dp))
 
         BotonPrimario(
             texto = "Crear cuenta",
-            onClick = { onCrearCuenta(nombre, telefono, direccion, referencia) }
+            onClick = {
+                if (nombre.isBlank() || telefono.isBlank() || direccion.isBlank()) {
+                    errorMensaje = "Por favor completa tu nombre, teléfono y dirección"
+                } else {
+                    onCrearCuenta(nombre.trim(), telefono.trim(), direccion.trim(), referencia.trim())
+                }
+            }
         )
 
         Spacer(Modifier.height(24.dp))
@@ -144,14 +171,14 @@ private fun EncabezadoRegistro(onVolver: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f, fill = false)
         )
-        Spacer(Modifier.size(48.dp)) // balancea el ancho del ícono de la izquierda
+        Spacer(Modifier.size(48.dp))
     }
     Text(
         text = "Completa tus datos para continuar",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth(),
-        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        textAlign = TextAlign.Center
     )
 }
 
@@ -162,4 +189,3 @@ private fun RegistroPreview() {
         RegistroScreen(onVolver = {}, onCrearCuenta = { _, _, _, _ -> })
     }
 }
-
