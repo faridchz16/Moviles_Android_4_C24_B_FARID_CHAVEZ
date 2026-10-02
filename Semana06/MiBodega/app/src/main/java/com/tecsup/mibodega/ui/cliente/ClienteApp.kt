@@ -15,24 +15,25 @@ import com.tecsup.mibodega.ui.cliente.modelo.Producto
 import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
 import com.tecsup.mibodega.ui.cliente.screens.bienvenida.BienvenidaScreen
 import com.tecsup.mibodega.ui.cliente.screens.carrito.CarritoScreen
+import com.tecsup.mibodega.ui.cliente.screens.confirmacion.ConfirmacionScreen
 import com.tecsup.mibodega.ui.cliente.screens.detalle.DetalleProductoScreen
+import com.tecsup.mibodega.ui.cliente.screens.entrega.DatosEntregaScreen
 import com.tecsup.mibodega.ui.cliente.screens.inicio.InicioScreen
 import com.tecsup.mibodega.ui.cliente.screens.registro.RegistroScreen
 
 /**
  * "Director de orquesta" de la app cliente:
- * - Tiene el NavHost con las rutas de cada pantalla.
- * - Tiene el estado del carrito (List<ItemCarrito>), que se reparte
- *   hacia abajo a Inicio, Detalle, Carrito y Entrega.
- * Ninguna Screen navega sola ni modifica el carrito directamente:
- * todas reciben funciones (lambdas) desde aquí (state hoisting).
+ * - Tiene el NavHost con las rutas de las 7 pantallas.
+ * - Maneja el estado global del carrito.
  */
-private object Rutas {
+object Rutas {
     const val BIENVENIDA = "bienvenida"
     const val REGISTRO = "registro"
     const val INICIO = "inicio"
     const val DETALLE = "detalle/{productoId}"
     const val CARRITO = "carrito"
+    const val ENTREGA = "entrega"
+    const val CONFIRMACION = "confirmacion"
 
     fun detalle(productoId: Int) = "detalle/$productoId"
 }
@@ -41,7 +42,6 @@ private object Rutas {
 fun ClienteApp() {
     val navController = rememberNavController()
 
-    // El carrito vive aquí arriba, no en ninguna Screen.
     var carrito by remember { mutableStateOf<List<ItemCarrito>>(emptyList()) }
 
     NavHost(
@@ -51,7 +51,7 @@ fun ClienteApp() {
         composable(Rutas.BIENVENIDA) {
             BienvenidaScreen(
                 onRegistrarse = { navController.navigate(Rutas.REGISTRO) },
-                onIniciarSesion = { /* TODO: pantalla de login, aún no está en el mockup */ },
+                onIniciarSesion = { /* TODO: pantalla de login si aplica */ },
                 onTerminos = { /* TODO: abrir términos y condiciones */ }
             )
         }
@@ -59,8 +59,7 @@ fun ClienteApp() {
         composable(Rutas.REGISTRO) {
             RegistroScreen(
                 onVolver = { navController.popBackStack() },
-                onCrearCuenta = { nombre, telefono, direccion, referencia ->
-                    // TODO: guardar estos datos cuando exista el registro real
+                onCrearCuenta = { _, _, _, _ ->
                     navController.navigate(Rutas.INICIO) {
                         popUpTo(Rutas.BIENVENIDA) { inclusive = true }
                     }
@@ -86,7 +85,8 @@ fun ClienteApp() {
             arguments = listOf(navArgument("productoId") { type = NavType.IntType })
         ) { backStackEntry ->
             val productoId = backStackEntry.arguments?.getInt("productoId") ?: 0
-            val producto = listaProductosFake.first { it.id == productoId }
+            val producto = listaProductosFake.firstOrNull { it.id == productoId }
+                ?: listaProductosFake.first()
 
             DetalleProductoScreen(
                 producto = producto,
@@ -112,23 +112,43 @@ fun ClienteApp() {
                         when {
                             it.producto.id != producto.id -> it
                             it.cantidad > 1 -> it.copy(cantidad = it.cantidad - 1)
-                            else -> null // si llega a 0, se elimina de la lista
+                            else -> null
                         }
                     }
                 },
                 onEliminar = { producto ->
                     carrito = carrito.filterNot { it.producto.id == producto.id }
                 },
-                onContinuarPedido = { /* TODO: navegar a DatosEntregaScreen */ }
+                onContinuarPedido = {
+                    navController.navigate(Rutas.ENTREGA)
+                }
+            )
+        }
+
+        composable(Rutas.ENTREGA) {
+            DatosEntregaScreen(
+                onVolver = { navController.popBackStack() },
+                onConfirmarPedido = {
+                    navController.navigate(Rutas.CONFIRMACION) {
+                        popUpTo(Rutas.INICIO) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        composable(Rutas.CONFIRMACION) {
+            ConfirmacionScreen(
+                onVolverInicio = {
+                    carrito = emptyList()
+                    navController.navigate(Rutas.INICIO) {
+                        popUpTo(Rutas.INICIO) { inclusive = true }
+                    }
+                }
             )
         }
     }
 }
 
-/**
- * Si el producto ya está en el carrito, le suma la cantidad;
- * si no, lo agrega como un ItemCarrito nuevo.
- */
 private fun agregarOSumarProducto(
     carrito: List<ItemCarrito>,
     producto: Producto,
