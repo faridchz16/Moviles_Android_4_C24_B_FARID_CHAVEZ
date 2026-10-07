@@ -21,12 +21,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,11 +62,23 @@ fun HomeScreen(
     onMedicoClick: (Int) -> Unit
 ) {
     var especialidadSeleccionada by remember { mutableStateOf("") }
+    var textoBusqueda by remember { mutableStateOf("") }
 
-    val medicosFiltrados = if (especialidadSeleccionada.isEmpty()) {
-        listaMedicos
-    } else {
-        listaMedicos.filter { it.especialidad.equals(especialidadSeleccionada, ignoreCase = true) }
+    val medicosFiltrados = remember(especialidadSeleccionada, textoBusqueda) {
+        listaMedicos.filter { medico ->
+            val coincideEspecialidad = if (especialidadSeleccionada.isEmpty()) {
+                true
+            } else {
+                medico.especialidad.equals(especialidadSeleccionada, ignoreCase = true)
+            }
+            val coincideTexto = if (textoBusqueda.isBlank()) {
+                true
+            } else {
+                medico.nombre.contains(textoBusqueda.trim(), ignoreCase = true) ||
+                        medico.especialidad.contains(textoBusqueda.trim(), ignoreCase = true)
+            }
+            coincideEspecialidad && coincideTexto
+        }
     }
 
     Column(
@@ -108,7 +124,46 @@ fun HomeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OutlinedTextField(
+            value = textoBusqueda,
+            onValueChange = { textoBusqueda = it },
+            placeholder = { Text("Buscar médico por nombre...", fontSize = 13.sp, color = Color(0xFF7E768A)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
+                    tint = Color(0xFF7E768A),
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            trailingIcon = {
+                if (textoBusqueda.isNotEmpty()) {
+                    IconButton(onClick = { textoBusqueda = "" }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Limpiar",
+                            tint = Color(0xFF7E768A),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = ColorMoradoEncabezado,
+                unfocusedBorderColor = Color(0xFFDCD8E2)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
 
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
