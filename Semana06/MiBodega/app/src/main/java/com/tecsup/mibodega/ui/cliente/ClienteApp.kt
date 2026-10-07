@@ -1,5 +1,9 @@
 package com.tecsup.mibodega.ui.cliente
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -12,13 +16,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.mibodega.ui.cliente.modelo.ItemCarrito
+import com.tecsup.mibodega.ui.cliente.modelo.Pedido
 import com.tecsup.mibodega.ui.cliente.modelo.Producto
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioPedidos
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioUsuarios
+import com.tecsup.mibodega.ui.cliente.modelo.Usuario
 import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
 import com.tecsup.mibodega.ui.cliente.screens.bienvenida.BienvenidaScreen
 import com.tecsup.mibodega.ui.cliente.screens.carrito.CarritoScreen
 import com.tecsup.mibodega.ui.cliente.screens.confirmacion.ConfirmacionScreen
 import com.tecsup.mibodega.ui.cliente.screens.detalle.DetalleProductoScreen
 import com.tecsup.mibodega.ui.cliente.screens.entrega.DatosEntregaScreen
+import com.tecsup.mibodega.ui.cliente.screens.entrega.TipoEntrega
 import com.tecsup.mibodega.ui.cliente.screens.inicio.InicioScreen
 import com.tecsup.mibodega.ui.cliente.screens.registro.RegistroScreen
 
@@ -35,7 +44,10 @@ object Rutas {
 }
 
 @Composable
-fun ClienteApp() {
+fun ClienteApp(
+    esModoOscuro: Boolean = false,
+    onCambiarModoOscuro: (Boolean) -> Unit = {}
+) {
     val navController = rememberNavController()
     var carrito by remember { mutableStateOf(listOf<ItemCarrito>()) }
     var pestanaDestinoInicio by remember { mutableIntStateOf(0) }
@@ -43,7 +55,23 @@ fun ClienteApp() {
 
     NavHost(
         navController = navController,
-        startDestination = Rutas.BIENVENIDA
+        startDestination = Rutas.BIENVENIDA,
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(350)) +
+                    fadeIn(animationSpec = tween(350))
+        },
+        exitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(350)) +
+                    fadeOut(animationSpec = tween(350))
+        },
+        popEnterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(350)) +
+                    fadeIn(animationSpec = tween(350))
+        },
+        popExitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(350)) +
+                    fadeOut(animationSpec = tween(350))
+        }
     ) {
         composable(Rutas.BIENVENIDA) {
             BienvenidaScreen(
@@ -61,11 +89,17 @@ fun ClienteApp() {
         composable(Rutas.REGISTRO) {
             RegistroScreen(
                 onVolver = { navController.popBackStack() },
-                onCrearCuenta = { _, _, _, _ ->
-                    pestanaDestinoInicio = 0
-                    navController.navigate(Rutas.INICIO) {
-                        popUpTo(Rutas.BIENVENIDA) { inclusive = true }
-                    }
+                onCrearCuenta = { nombre, telefono, contrasena, direccion, referencia ->
+                    RepositorioUsuarios.registrar(
+                        Usuario(
+                            nombre = nombre,
+                            telefono = telefono,
+                            contrasena = contrasena,
+                            direccion = direccion,
+                            referencia = referencia
+                        )
+                    )
+                    navController.popBackStack()
                 }
             )
         }
@@ -75,6 +109,8 @@ fun ClienteApp() {
                 cantidadCarrito = carrito.sumOf { it.cantidad },
                 pestanaInicial = pestanaDestinoInicio,
                 tienePedidoRealizado = tienePedidoActivo,
+                esModoOscuro = esModoOscuro,
+                onCambiarModoOscuro = onCambiarModoOscuro,
                 onCambiarPestana = { nuevaPestana ->
                     pestanaDestinoInicio = nuevaPestana
                 },
@@ -140,9 +176,23 @@ fun ClienteApp() {
         }
 
         composable(Rutas.ENTREGA) {
+            val subtotalCarrito = carrito.sumOf { it.producto.precio * it.cantidad }
+
             DatosEntregaScreen(
+                subtotal = subtotalCarrito,
+                carrito = carrito,
                 onVolver = { navController.popBackStack() },
-                onConfirmarPedido = {
+                onConfirmarPedido = { totalPagar, tipo, direccion, metodo ->
+                    val nuevoPedido = Pedido(
+                        id = "Pedido #${(1000..9999).random()}",
+                        items = carrito,
+                        total = totalPagar,
+                        fecha = "Hoy",
+                        tipoEntrega = if (tipo == TipoEntrega.DELIVERY) "Delivery" else "Recojo en tienda",
+                        direccion = direccion,
+                        metodoPago = metodo
+                    )
+                    RepositorioPedidos.agregarPedido(nuevoPedido)
                     tienePedidoActivo = true
                     navController.navigate(Rutas.CONFIRMACION)
                 }
