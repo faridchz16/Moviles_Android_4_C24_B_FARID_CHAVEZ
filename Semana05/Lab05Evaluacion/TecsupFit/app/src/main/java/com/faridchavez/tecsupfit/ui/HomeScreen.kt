@@ -53,10 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.faridchavez.tecsupfit.model.ClaseFit
 
-val VerdeInstitucional = Color(0xFF0D634C)
-val VerdeClaroIcono = Color(0xFFE2F3EE)
-val GrisBorde = Color(0xFFDDE3EA)
-val GrisFondoCard = Color(0xFFF9FBFA)
+private val VerdeInstitucional = Color(0xFF0D634C)
+private val VerdeClaroIcono = Color(0xFFE2F3EE)
+private val GrisBorde = Color(0xFFD0E3EA)
+private val GrisFondoCard = Color(0xFFF9FBFA)
+private val GrisTexto = Color(0xFF757575)
 
 @Composable
 fun HomeScreen(
