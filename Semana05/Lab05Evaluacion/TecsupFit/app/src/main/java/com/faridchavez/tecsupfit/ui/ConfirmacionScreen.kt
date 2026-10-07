@@ -16,9 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.faridchavez.tecsupfit.model.ClaseFit
-import com.faridchavez.tecsupfit.model.GrisTexto
-import com.faridchavez.tecsupfit.model.VerdeFondoCard
-import com.faridchavez.tecsupfit.model.VerdePrincipal
+private val VerdePrincipal = Color(0xFF0D634C)
+private val VerdeFondoCard = Color(0xFFE8F5E9)
+private val GrisTexto = Color(0xFF757575)
 
 @Composable
 fun ConfirmacionScreen(
