@@ -10,3 +10,10 @@
 .cxx
 local.properties
 .kotlin/
+*.iml
+.gradle/
+/local.properties
+/.idea/
+/build/
+/app/build/
+.kotlin/
