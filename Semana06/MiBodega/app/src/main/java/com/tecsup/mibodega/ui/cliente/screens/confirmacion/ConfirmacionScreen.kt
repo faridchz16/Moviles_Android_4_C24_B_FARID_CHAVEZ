@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioPedidos
 import com.tecsup.mibodega.ui.componentes.BotonPrimario
-import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.RojoPrecio
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
@@ -42,6 +42,8 @@ fun ConfirmacionScreen(
     onVolverInicio: () -> Unit,
     onVerEstadoPedido: () -> Unit = {}
 ) {
+    val pedido = RepositorioPedidos.ultimoPedido
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,11 +90,11 @@ fun ConfirmacionScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = GrisClaro)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Pedido #1024",
+                    text = pedido?.id ?: "Pedido #1024",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -105,23 +107,23 @@ fun ConfirmacionScreen(
                 ) {
                     Text(text = "Total", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "S/ 25.90",
+                        text = "S/ ${String.format("%.2f", pedido?.total ?: 0.0)}",
                         fontWeight = FontWeight.Bold,
                         color = RojoPrecio
                     )
                 }
 
                 Spacer(Modifier.height(8.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Dirección",
+                    text = "Dirección / Modalidad",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    text = "Av. Los Olivos 123\n(Frente al parque)",
+                    text = pedido?.direccion ?: "Av. Los Olivos 123",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
