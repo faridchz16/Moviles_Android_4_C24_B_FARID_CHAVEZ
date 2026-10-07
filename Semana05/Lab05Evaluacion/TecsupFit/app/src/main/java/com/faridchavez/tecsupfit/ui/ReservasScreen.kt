@@ -5,79 +5,99 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.faridchavez.tecsupfit.data.misReservasGlobales
-import com.faridchavez.tecsupfit.model.GrisTexto
-import com.faridchavez.tecsupfit.model.VerdeAcento
-import com.faridchavez.tecsupfit.model.VerdePrincipal
+import com.faridchavez.tecsupfit.model.ClaseFit
+
+private val VerdeTecsup = Color(0xFF0D634C)
 
 @Composable
-fun ReservasScreen() {
+fun ReservasScreen(
+    reservas: List<ClaseFit> = emptyList()
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(20.dp)
+            .background(Color(0xFFF6F8F7))
+            .padding(16.dp)
     ) {
         Text(
             text = "Mis reservas",
-            fontSize = 18.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = Color.Black,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(misReservasGlobales) { reserva ->
+            // Muestra las clases que has ido reservando en la sesión
+            items(reservas) { clase ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F9F8)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(5.dp)
-                                .height(68.dp)
-                                .background(if (reserva.estado == "Confirmada") VerdePrincipal else Color.LightGray)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = clase.titulo,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color.Black
                         )
-                        Column(
-                            modifier = Modifier.padding(14.dp)
-                        ) {
-                            Text(
-                                text = reserva.clase.titulo,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "${reserva.clase.periodo}, ${reserva.clase.horario}",
-                                fontSize = 12.sp,
-                                color = GrisTexto
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = reserva.estado,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (reserva.estado == "Confirmada") VerdeAcento else GrisTexto
-                            )
-                        }
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = "${clase.periodo}, ${clase.horario} • ${clase.sala}",
+                            fontSize = 13.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Confirmada",
+                            fontSize = 12.sp,
+                            color = VerdeTecsup,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // Clases base que venían de ejemplo
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Cross Training", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("Hoy, 6:00 pm • Box Principal", fontSize = 13.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Confirmada", fontSize = 12.sp, color = VerdeTecsup, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Yoga funcional", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("Hoy, 7:00 am • Sala C", fontSize = 13.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Completada", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
