@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,13 +23,21 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveShoppingCart
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,6 +64,8 @@ fun CarritoScreen(
     val subtotal = carrito.sumOf { it.producto.precio * it.cantidad }
     val costoDelivery = if (carrito.isNotEmpty()) 4.00 else 0.00
     val total = if (carrito.isNotEmpty()) subtotal + costoDelivery else 0.00
+
+    var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
 
     Column(
         modifier = Modifier
@@ -99,6 +108,12 @@ fun CarritoScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Agrega productos desde el catálogo para continuar",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         } else {
@@ -112,16 +127,16 @@ fun CarritoScreen(
                         item = item,
                         onIncrementar = { onIncrementar(item.producto) },
                         onDecrementar = { onDecrementar(item.producto) },
-                        onEliminar = { onEliminar(item.producto) }
+                        onSolicitarEliminar = { productoAEliminar = item.producto }
                     )
-                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.4f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 }
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Row(
@@ -143,7 +158,7 @@ fun CarritoScreen(
                 }
 
                 Spacer(Modifier.height(8.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 Spacer(Modifier.height(8.dp))
 
                 Row(
@@ -169,6 +184,35 @@ fun CarritoScreen(
             }
         }
     }
+
+    productoAEliminar?.let { producto ->
+        AlertDialog(
+            onDismissRequest = { productoAEliminar = null },
+            title = {
+                Text(text = "¿Eliminar producto?", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(text = "¿Estás seguro de que deseas eliminar \"${producto.nombre}\" del carrito?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onEliminar(producto)
+                        productoAEliminar = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = RojoPrecio),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { productoAEliminar = null }) {
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -176,7 +220,7 @@ private fun FilaItemCarrito(
     item: ItemCarrito,
     onIncrementar: () -> Unit,
     onDecrementar: () -> Unit,
-    onEliminar: () -> Unit
+    onSolicitarEliminar: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -217,18 +261,16 @@ private fun FilaItemCarrito(
             )
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 onClick = onDecrementar,
                 modifier = Modifier.size(32.dp),
-                colors = IconButtonDefaults.iconButtonColors(containerColor = GrisClaro)
+                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.Default.Remove,
                     contentDescription = "Disminuir",
-                    tint = Color.DarkGray,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -256,7 +298,7 @@ private fun FilaItemCarrito(
             Spacer(Modifier.width(6.dp))
 
             IconButton(
-                onClick = onEliminar,
+                onClick = onSolicitarEliminar,
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
