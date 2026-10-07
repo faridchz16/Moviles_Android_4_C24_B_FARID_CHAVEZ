@@ -627,135 +627,167 @@ fun AgendarCitaScreen(
     val dias = listOf("Jue\n26", "Vie\n27", "Sáb\n28")
     val horas = listOf("9:00", "10:30", "3:00")
 
-    var diaSeleccionado by remember { mutableStateOf("Vie\n27") }
-    var horaSeleccionada by remember { mutableStateOf("10:30") }
+    var diaSeleccionado by remember { mutableStateOf("") }
+    var horaSeleccionada by remember { mutableStateOf("") }
+    var mensajeAviso by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 20.dp, vertical = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = Color(0xFF1E1926)
-                )
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Agendar cita",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E1926)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Text(
-            text = "Selecciona fecha",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF7E768A)
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            items(dias) { dia ->
-                val esSel = diaSeleccionado == dia
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (esSel) Color(0xFF4A148C) else Color(0xFFF3EDF7),
-                    modifier = Modifier
-                        .size(width = 72.dp, height = 76.dp)
-                        .clickable { diaSeleccionado = dia }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = dia,
-                            fontSize = 15.sp,
-                            fontWeight = if (esSel) FontWeight.Bold else FontWeight.Medium,
-                            color = if (esSel) Color.White else Color(0xFF1E1926),
-                            lineHeight = 20.sp
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Text(
-            text = "Selecciona hora",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF7E768A)
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            items(horas) { hora ->
-                val esSel = horaSeleccionada == hora
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = if (esSel) Color(0xFF4A148C) else Color(0xFFF3EDF7),
-                    modifier = Modifier
-                        .size(width = 86.dp, height = 48.dp)
-                        .clickable { horaSeleccionada = hora }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = hora,
-                            fontSize = 14.sp,
-                            fontWeight = if (esSel) FontWeight.Bold else FontWeight.Medium,
-                            color = if (esSel) Color.White else Color(0xFF1E1926)
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Button(
-            onClick = {
-                val fechaFormateada = when (diaSeleccionado) {
-                    "Jue\n26" -> "Jueves 26"
-                    "Vie\n27" -> "Viernes 27"
-                    else -> "Sábado 28"
-                }
-                val nueva = Cita(
-                    id = System.currentTimeMillis().toInt(),
-                    medicoNombre = medico.nombre,
-                    especialidad = medico.especialidad,
-                    fecha = fechaFormateada,
-                    hora = "$horaSeleccionada am",
-                    estado = "Confirmada"
-                )
-                onConfirmar(nueva)
-            },
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Regresar",
+                        tint = Color(0xFF1E1926)
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Agendar cita",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E1926)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
             Text(
-                text = "Confirmar cita",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                text = "Selecciona fecha",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF7E768A)
             )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                items(dias) { dia ->
+                    val esSel = diaSeleccionado == dia
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (esSel) Color(0xFF4A148C) else Color(0xFFF3EDF7),
+                        modifier = Modifier
+                            .size(width = 72.dp, height = 76.dp)
+                            .clickable {
+                                diaSeleccionado = dia
+                                mensajeAviso = null
+                            }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = dia,
+                                fontSize = 15.sp,
+                                fontWeight = if (esSel) FontWeight.Bold else FontWeight.Medium,
+                                color = if (esSel) Color.White else Color(0xFF1E1926),
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text(
+                text = "Selecciona hora",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF7E768A)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                items(horas) { hora ->
+                    val esSel = horaSeleccionada == hora
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (esSel) Color(0xFF4A148C) else Color(0xFFF3EDF7),
+                        modifier = Modifier
+                            .size(width = 86.dp, height = 48.dp)
+                            .clickable {
+                                horaSeleccionada = hora
+                                mensajeAviso = null
+                            }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = hora,
+                                fontSize = 14.sp,
+                                fontWeight = if (esSel) FontWeight.Bold else FontWeight.Medium,
+                                color = if (esSel) Color.White else Color(0xFF1E1926)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    if (diaSeleccionado.isBlank() || horaSeleccionada.isBlank()) {
+                        mensajeAviso = "Por favor, selecciona una fecha y una hora antes de continuar"
+                    } else {
+                        mensajeAviso = "¡Cita reservada con éxito!"
+                        val fechaFormateada = when (diaSeleccionado) {
+                            "Jue\n26" -> "Jueves 26"
+                            "Vie\n27" -> "Viernes 27"
+                            else -> "Sábado 28"
+                        }
+                        val nueva = Cita(
+                            id = System.currentTimeMillis().toInt(),
+                            medicoNombre = medico.nombre,
+                            especialidad = medico.especialidad,
+                            fecha = fechaFormateada,
+                            hora = "$horaSeleccionada am",
+                            estado = "Confirmada"
+                        )
+                        onConfirmar(nueva)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
+            ) {
+                Text(
+                    text = "Confirmar cita",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
         }
-        Spacer(modifier = Modifier.height(12.dp))
+
+        mensajeAviso?.let { texto ->
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                color = Color(0xFF212121),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = texto,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            }
+        }
     }
 }
 
