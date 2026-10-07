@@ -42,13 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.mibodega.R
-import com.tecsup.mibodega.ui.theme.BodegaTheme
-import com.tecsup.mibodega.ui.theme.GrisClaro
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioUsuarios
+import com.tecsup.mibodega.ui.cliente.modelo.Usuario
 import com.tecsup.mibodega.ui.theme.VerdeBodega
+
+private const val USUARIO_FIJO = "987654321"
+private const val PASSWORD_FIJO = "123456"
 
 @Composable
 fun BienvenidaScreen(
@@ -59,7 +61,7 @@ fun BienvenidaScreen(
     var mostrarDialogoLogin by remember { mutableStateOf(false) }
     var usuarioLogin by remember { mutableStateOf("") }
     var passwordLogin by remember { mutableStateOf("") }
-    var errorLogin by remember { mutableStateOf(false) }
+    var errorMensaje by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -129,7 +131,10 @@ fun BienvenidaScreen(
         Spacer(Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = { mostrarDialogoLogin = true },
+            onClick = {
+                errorMensaje = null
+                mostrarDialogoLogin = true
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -161,7 +166,7 @@ fun BienvenidaScreen(
         AlertDialog(
             onDismissRequest = {
                 mostrarDialogoLogin = false
-                errorLogin = false
+                errorMensaje = null
             },
             title = {
                 Text(
@@ -173,7 +178,7 @@ fun BienvenidaScreen(
             text = {
                 Column {
                     Text(
-                        text = "Ingresa tu número de teléfono y contraseña para acceder.",
+                        text = "Ingresa tu número de teléfono y contraseña.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -184,17 +189,19 @@ fun BienvenidaScreen(
                         value = usuarioLogin,
                         onValueChange = {
                             usuarioLogin = it
-                            errorLogin = false
+                            errorMensaje = null
                         },
                         label = { Text("Teléfono o usuario") },
                         leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
                         singleLine = true,
+                        isError = errorMensaje != null,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = GrisClaro,
-                            focusedContainerColor = GrisClaro,
-                            focusedBorderColor = VerdeBodega
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedBorderColor = VerdeBodega,
+                            errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -205,26 +212,28 @@ fun BienvenidaScreen(
                         value = passwordLogin,
                         onValueChange = {
                             passwordLogin = it
-                            errorLogin = false
+                            errorMensaje = null
                         },
                         label = { Text("Contraseña") },
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                         singleLine = true,
+                        isError = errorMensaje != null,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = GrisClaro,
-                            focusedContainerColor = GrisClaro,
-                            focusedBorderColor = VerdeBodega
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedBorderColor = VerdeBodega,
+                            errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (errorLogin) {
+                    if (errorMensaje != null) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Por favor completa ambos campos para continuar",
+                            text = errorMensaje.orEmpty(),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -234,11 +243,31 @@ fun BienvenidaScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        if (usuarioLogin.isNotBlank() && passwordLogin.isNotBlank()) {
-                            mostrarDialogoLogin = false
-                            onIniciarSesion()
+                        val telefonoIngresado = usuarioLogin.trim()
+                        val contrasenaIngresada = passwordLogin.trim()
+
+                        if (telefonoIngresado.isBlank() || contrasenaIngresada.isBlank()) {
+                            errorMensaje = "Por favor completa ambos campos"
                         } else {
-                            errorLogin = true
+                            val coincideFijo = (telefonoIngresado == USUARIO_FIJO && contrasenaIngresada == PASSWORD_FIJO)
+                            val coincideRegistrado = RepositorioUsuarios.autenticar(telefonoIngresado, contrasenaIngresada)
+
+                            if (coincideFijo || coincideRegistrado) {
+                                if (coincideFijo && RepositorioUsuarios.usuarioActivo == null) {
+                                    RepositorioUsuarios.usuarioActivo = Usuario(
+                                        nombre = "Cliente Demo",
+                                        telefono = USUARIO_FIJO,
+                                        contrasena = PASSWORD_FIJO,
+                                        direccion = "Av. Los Olivos 123",
+                                        referencia = "Frente al parque"
+                                    )
+                                }
+                                mostrarDialogoLogin = false
+                                errorMensaje = null
+                                onIniciarSesion()
+                            } else {
+                                errorMensaje = "Teléfono o contraseña incorrectos"
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = VerdeBodega),
@@ -251,24 +280,12 @@ fun BienvenidaScreen(
                 TextButton(
                     onClick = {
                         mostrarDialogoLogin = false
-                        errorLogin = false
+                        errorMensaje = null
                     }
                 ) {
                     Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun BienvenidaPreview() {
-    BodegaTheme {
-        BienvenidaScreen(
-            onRegistrarse = {},
-            onIniciarSesion = {},
-            onTerminos = {}
         )
     }
 }
