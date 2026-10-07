@@ -26,6 +26,9 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocalDrink
@@ -36,6 +39,7 @@ import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.outlined.DeliveryDining
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -44,6 +48,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +60,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -72,12 +80,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.mibodega.ui.cliente.modelo.Producto
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioPedidos
+import com.tecsup.mibodega.ui.cliente.modelo.RepositorioUsuarios
 import com.tecsup.mibodega.ui.cliente.modelo.listaCategorias
 import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
 import com.tecsup.mibodega.ui.componentes.ProductoCard
-import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.RojoPrecio
 import com.tecsup.mibodega.ui.theme.VerdeBodega
+
+enum class OrdenPrecio {
+    DEFECTO,
+    MENOR_A_MAYOR,
+    MAYOR_A_MENOR
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +101,8 @@ fun InicioScreen(
     cantidadCarrito: Int,
     pestanaInicial: Int = 0,
     tienePedidoRealizado: Boolean = false,
+    esModoOscuro: Boolean = false,
+    onCambiarModoOscuro: (Boolean) -> Unit = {},
     onCambiarPestana: (Int) -> Unit = {},
     onVerCarrito: () -> Unit,
     onProductoClick: (Producto) -> Unit,
@@ -96,31 +113,42 @@ fun InicioScreen(
     var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
     var indicePestana by remember { mutableIntStateOf(pestanaInicial) }
 
+    var favoritosIds by remember { mutableStateOf(setOf<Int>()) }
+    var mostrarSoloFavoritos by remember { mutableStateOf(false) }
+    var ordenSeleccionado by remember { mutableStateOf(OrdenPrecio.DEFECTO) }
+
     LaunchedEffect(pestanaInicial) {
         indicePestana = pestanaInicial
     }
 
-    val productosFiltrados = remember(productos, categoriaSeleccionada, textoBusqueda) {
-        productos.filter { producto ->
-            val coincideCategoria = if (categoriaSeleccionada == "Todos") {
-                true
-            } else {
-                producto.categoria.equals(categoriaSeleccionada, ignoreCase = true)
+    val productosFiltradosYOrdenados = remember(
+        productos,
+        categoriaSeleccionada,
+        textoBusqueda,
+        mostrarSoloFavoritos,
+        favoritosIds,
+        ordenSeleccionado
+    ) {
+        val listaFiltrada = productos.filter { prod ->
+            val coincideCategoria = if (categoriaSeleccionada == "Todos") true else prod.categoria.equals(categoriaSeleccionada, ignoreCase = true)
+            val coincideTexto = if (textoBusqueda.isBlank()) true else {
+                prod.nombre.contains(textoBusqueda.trim(), ignoreCase = true) ||
+                        prod.descripcion.contains(textoBusqueda.trim(), ignoreCase = true)
             }
+            val coincideFavorito = if (mostrarSoloFavoritos) favoritosIds.contains(prod.id) else true
 
-            val coincideTexto = if (textoBusqueda.isBlank()) {
-                true
-            } else {
-                producto.nombre.contains(textoBusqueda.trim(), ignoreCase = true) ||
-                        producto.descripcion.contains(textoBusqueda.trim(), ignoreCase = true)
-            }
+            coincideCategoria && coincideTexto && coincideFavorito
+        }
 
-            coincideCategoria && coincideTexto
+        when (ordenSeleccionado) {
+            OrdenPrecio.MENOR_A_MAYOR -> listaFiltrada.sortedBy { it.precio }
+            OrdenPrecio.MAYOR_A_MENOR -> listaFiltrada.sortedByDescending { it.precio }
+            OrdenPrecio.DEFECTO -> listaFiltrada
         }
     }
 
-    val productosEnPares = remember(productosFiltrados) {
-        productosFiltrados.chunked(2)
+    val productosEnPares = remember(productosFiltradosYOrdenados) {
+        productosFiltradosYOrdenados.chunked(2)
     }
 
     Scaffold(
@@ -129,7 +157,7 @@ fun InicioScreen(
                 title = {
                     Text(
                         when (indicePestana) {
-                            0 -> "Mi Bodega"
+                            0 -> if (mostrarSoloFavoritos) "Mis Favoritos" else "Mi Bodega"
                             1 -> "Categorías"
                             2 -> "Mis Pedidos"
                             else -> "Mi Perfil"
@@ -190,8 +218,8 @@ fun InicioScreen(
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedContainerColor = GrisClaro,
-                                focusedContainerColor = GrisClaro,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 unfocusedBorderColor = Color.Transparent,
                                 focusedBorderColor = VerdeBodega
                             )
@@ -201,12 +229,12 @@ fun InicioScreen(
                             text = "Categorías",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 18.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                         )
 
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
                             items(listaCategorias) { categoria ->
                                 ChipCategoria(
@@ -217,26 +245,96 @@ fun InicioScreen(
                             }
                         }
 
+                        Spacer(Modifier.height(8.dp))
+
+                        // CHIPS: FAVORITOS Y ORDENAR POR PRECIO
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp, bottom = 4.dp),
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FilterChip(
+                                selected = mostrarSoloFavoritos,
+                                onClick = { mostrarSoloFavoritos = !mostrarSoloFavoritos },
+                                label = {
+                                    Text(
+                                        text = if (mostrarSoloFavoritos) "Favoritos (${favoritosIds.size})" else "Favoritos",
+                                        fontWeight = if (mostrarSoloFavoritos) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = if (mostrarSoloFavoritos) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = null,
+                                        tint = if (mostrarSoloFavoritos) Color(0xFFE53935) else Color.Gray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color(0xFFFFEBEE),
+                                    selectedLabelColor = Color(0xFFC62828)
+                                )
+                            )
+
+                            FilterChip(
+                                selected = ordenSeleccionado != OrdenPrecio.DEFECTO,
+                                onClick = {
+                                    ordenSeleccionado = when (ordenSeleccionado) {
+                                        OrdenPrecio.DEFECTO -> OrdenPrecio.MENOR_A_MAYOR
+                                        OrdenPrecio.MENOR_A_MAYOR -> OrdenPrecio.MAYOR_A_MENOR
+                                        OrdenPrecio.MAYOR_A_MENOR -> OrdenPrecio.DEFECTO
+                                    }
+                                },
+                                label = {
+                                    Text(
+                                        when (ordenSeleccionado) {
+                                            OrdenPrecio.MENOR_A_MAYOR -> "Precio: Menor a mayor"
+                                            OrdenPrecio.MAYOR_A_MENOR -> "Precio: Mayor a menor"
+                                            OrdenPrecio.DEFECTO -> "Ordenar por precio"
+                                        }
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.SwapVert,
+                                        contentDescription = null,
+                                        tint = if (ordenSeleccionado != OrdenPrecio.DEFECTO) VerdeBodega else Color.Gray,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = VerdeBodega.copy(alpha = 0.15f),
+                                    selectedLabelColor = VerdeBodega
+                                )
+                            )
+                        }
+
+                        Spacer(Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = if (textoBusqueda.isNotBlank()) "Resultados de búsqueda" else "Productos destacados",
+                                text = if (mostrarSoloFavoritos) "Mis Productos Favoritos"
+                                else if (textoBusqueda.isNotBlank()) "Resultados de búsqueda"
+                                else "Productos destacados",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${productosFiltrados.size} productos",
+                                text = "${productosFiltradosYOrdenados.size} productos",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(6.dp))
                     }
 
                     if (productosEnPares.isEmpty()) {
@@ -244,25 +342,26 @@ fun InicioScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 48.dp),
+                                    .padding(vertical = 40.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(
-                                        imageVector = Icons.Default.SearchOff,
+                                        imageVector = if (mostrarSoloFavoritos) Icons.Default.FavoriteBorder else Icons.Default.SearchOff,
                                         contentDescription = null,
                                         tint = Color.Gray,
                                         modifier = Modifier.size(56.dp)
                                     )
                                     Spacer(Modifier.height(12.dp))
                                     Text(
-                                        text = if (textoBusqueda.isNotBlank()) "No encontramos \"$textoBusqueda\"" else "No hay productos disponibles",
+                                        text = if (mostrarSoloFavoritos) "Aún no tienes favoritos" else "No se encontraron productos",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Spacer(Modifier.height(4.dp))
                                     Text(
-                                        text = "Intenta buscar con otra palabra o selecciona otra categoría.",
+                                        text = if (mostrarSoloFavoritos) "Toca el corazón en cualquier producto para guardarlo aquí."
+                                        else "Prueba con otra palabra o categoría.",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center
@@ -282,6 +381,14 @@ fun InicioScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         ProductoCard(
                                             producto = producto,
+                                            esFavorito = favoritosIds.contains(producto.id),
+                                            onToggleFavorito = {
+                                                favoritosIds = if (favoritosIds.contains(producto.id)) {
+                                                    favoritosIds - producto.id
+                                                } else {
+                                                    favoritosIds + producto.id
+                                                }
+                                            },
                                             onClick = { onProductoClick(producto) },
                                             onAgregar = { onAgregarProducto(producto) }
                                         )
@@ -326,11 +433,12 @@ fun InicioScreen(
                                 .fillMaxWidth()
                                 .clickable {
                                     categoriaSeleccionada = cat
+                                    mostrarSoloFavoritos = false
                                     indicePestana = 0
                                     onCambiarPestana(0)
                                 },
                             shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = GrisClaro)
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -378,7 +486,9 @@ fun InicioScreen(
                 }
             }
             2 -> {
-                if (tienePedidoRealizado) {
+                val historialPedidos = RepositorioPedidos.historial
+
+                if (historialPedidos.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -394,18 +504,18 @@ fun InicioScreen(
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
                             Text(
-                                text = "Revisa el estado de entrega de tus compras",
+                                text = "Revisa el estado de tus compras",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(8.dp))
                         }
 
-                        item {
+                        items(historialPedidos) { pedidoItem ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
-                                colors = CardDefaults.cardColors(containerColor = GrisClaro)
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Row(
@@ -414,7 +524,7 @@ fun InicioScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "Pedido #1024",
+                                            text = pedidoItem.id,
                                             fontWeight = FontWeight.Bold,
                                             style = MaterialTheme.typography.titleMedium
                                         )
@@ -443,13 +553,13 @@ fun InicioScreen(
 
                                     Spacer(Modifier.height(8.dp))
                                     Text(
-                                        text = "Hoy • Entrega a: Av. Los Olivos 123",
+                                        text = "${pedidoItem.fecha} • Entrega: ${pedidoItem.direccion}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
 
                                     Spacer(Modifier.height(10.dp))
-                                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                                     Spacer(Modifier.height(10.dp))
 
                                     Row(
@@ -457,12 +567,12 @@ fun InicioScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "Productos de tu orden",
+                                            text = "${pedidoItem.items.sumOf { it.cantidad }} productos (${pedidoItem.tipoEntrega})",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
-                                            text = "S/ 25.90",
+                                            text = "S/ ${String.format("%.2f", pedidoItem.total)}",
                                             fontWeight = FontWeight.Bold,
                                             color = RojoPrecio
                                         )
@@ -476,13 +586,18 @@ fun InicioScreen(
                         paddingValues = paddingInterno,
                         icono = Icons.Default.Receipt,
                         titulo = "Historial de Pedidos",
-                        descripcion = "Aquí podrás revisar el seguimiento de tus pedidos anteriores."
+                        descripcion = "Aquí podrás revisar el seguimiento de tus pedidos confirmados."
                     )
                 }
             }
             3 -> VistaPerfilMejorada(
                 paddingValues = paddingInterno,
-                onCerrarSesion = onCerrarSesion
+                esModoOscuro = esModoOscuro,
+                onCambiarModoOscuro = onCambiarModoOscuro,
+                onCerrarSesion = {
+                    RepositorioUsuarios.cerrarSesion()
+                    onCerrarSesion()
+                }
             )
         }
     }
@@ -491,8 +606,12 @@ fun InicioScreen(
 @Composable
 private fun VistaPerfilMejorada(
     paddingValues: PaddingValues,
+    esModoOscuro: Boolean,
+    onCambiarModoOscuro: (Boolean) -> Unit,
     onCerrarSesion: () -> Unit
 ) {
+    val usuario = RepositorioUsuarios.usuarioActivo
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -518,7 +637,7 @@ private fun VistaPerfilMejorada(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "Juan Pérez",
+            text = usuario?.nombre ?: "Farid Chavez",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -529,12 +648,12 @@ private fun VistaPerfilMejorada(
             fontWeight = FontWeight.SemiBold
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = GrisClaro)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -547,21 +666,73 @@ private fun VistaPerfilMejorada(
                 FilaDatoPerfil(
                     icono = Icons.Default.Phone,
                     titulo = "Teléfono",
-                    valor = "+51 987 654 321"
+                    valor = usuario?.telefono ?: "No registrado"
                 )
                 Spacer(Modifier.height(10.dp))
-                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 Spacer(Modifier.height(10.dp))
+
+                val direccionCompleta = if (!usuario?.referencia.isNullOrBlank()) {
+                    "${usuario?.direccion} (${usuario?.referencia})"
+                } else {
+                    usuario?.direccion ?: "No registrada"
+                }
 
                 FilaDatoPerfil(
                     icono = Icons.Default.LocationOn,
                     titulo = "Dirección de entrega",
-                    valor = "Av. Los Olivos 123 (Frente al parque)"
+                    valor = direccionCompleta
                 )
             }
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.DarkMode,
+                        contentDescription = "Modo Oscuro",
+                        tint = VerdeBodega,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Modo Oscuro",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = if (esModoOscuro) "Activado" else "Desactivado",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Switch(
+                    checked = esModoOscuro,
+                    onCheckedChange = onCambiarModoOscuro,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = VerdeBodega
+                    )
+                )
+            }
+        }
+
+        Spacer(Modifier.height(28.dp))
 
         Button(
             onClick = onCerrarSesion,
@@ -660,7 +831,7 @@ private fun ChipCategoria(
     seleccionado: Boolean,
     onClick: () -> Unit
 ) {
-    val fondo = if (seleccionado) VerdeBodega else GrisClaro
+    val fondo = if (seleccionado) VerdeBodega else MaterialTheme.colorScheme.surfaceVariant
     val contenido = if (seleccionado) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Row(
