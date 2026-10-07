@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,9 +26,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,9 +46,57 @@ import com.faridchavez.clinicasalud.model.Cita
 @Composable
 fun CitasScreen(
     paddingValues: PaddingValues,
-    citas: List<Cita>,
+    citas: MutableList<Cita>,
     onMenuClick: () -> Unit
 ) {
+    var citaParaEliminar by remember { mutableStateOf<Cita?>(null) }
+
+    if (citaParaEliminar != null) {
+        AlertDialog(
+            onDismissRequest = { citaParaEliminar = null },
+            title = {
+                Text(
+                    text = "Cancelar Cita",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF1E1926)
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Estás seguro de que deseas cancelar la cita con el médico seleccionado?",
+                    fontSize = 14.sp,
+                    color = Color(0xFF555555)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        citas.remove(citaParaEliminar)
+                        citaParaEliminar = null
+                    }
+                ) {
+                    Text(
+                        text = "Sí, cancelar",
+                        color = Color(0xFF4A148C),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { citaParaEliminar = null }) {
+                    Text(
+                        text = "No, conservar",
+                        color = Color(0xFF7E768A),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,7 +143,6 @@ fun CitasScreen(
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Barra lateral indicadora de estado
                         Box(
                             modifier = Modifier
                                 .width(4.dp)
@@ -128,6 +182,14 @@ fun CitasScreen(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
+                        }
+
+                        IconButton(onClick = { citaParaEliminar = cita }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Cancelar cita",
+                                tint = Color(0xFFE53935)
+                            )
                         }
                     }
                 }
