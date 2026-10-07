@@ -31,28 +31,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tecsup.mibodega.ui.componentes.BotonPrimario
 import com.tecsup.mibodega.ui.componentes.CampoTexto
-import com.tecsup.mibodega.ui.theme.BodegaTheme
 import com.tecsup.mibodega.ui.theme.GrisClaro
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
-/**
- * Pantalla 2: Registro de datos (PantallaCrearCuenta).
- * Maneja estado local con validaciones antes de disparar el callback.
- */
 @Composable
 fun RegistroScreen(
     onVolver: () -> Unit,
-    onCrearCuenta: (nombre: String, telefono: String, direccion: String, referencia: String) -> Unit
+    onCrearCuenta: (nombre: String, telefono: String, contrasena: String, direccion: String, referencia: String) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
+    var contrasena by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
-    var errorMensaje by remember { mutableStateOf<String?>(null) }
+
+    var intentoGuardar by remember { mutableStateOf(false) }
+
+    val errorNombre = intentoGuardar && nombre.isBlank()
+    val errorTelefono = intentoGuardar && telefono.isBlank()
+    val errorContrasena = intentoGuardar && (contrasena.isBlank() || contrasena.length < 6)
+    val errorDireccion = intentoGuardar && direccion.isBlank()
 
     Column(
         modifier = Modifier
@@ -85,64 +86,75 @@ fun RegistroScreen(
         CampoTexto(
             etiqueta = "Nombre completo",
             valor = nombre,
-            onValorCambia = {
-                nombre = it
-                if (errorMensaje != null) errorMensaje = null
-            },
-            placeholder = "Juan Pérez"
+            onValorCambia = { nombre = it },
+            placeholder = "",
+            esError = errorNombre,
+            mensajeError = if (errorNombre) "El nombre es obligatorio" else null
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
 
         CampoTexto(
             etiqueta = "Teléfono",
             valor = telefono,
-            onValorCambia = {
-                telefono = it
-                if (errorMensaje != null) errorMensaje = null
-            },
-            placeholder = "987 654 321",
-            teclado = KeyboardType.Phone
+            onValorCambia = { telefono = it },
+            placeholder = "",
+            teclado = KeyboardType.Phone,
+            esError = errorTelefono,
+            mensajeError = if (errorTelefono) "El teléfono es obligatorio" else null
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
+
+        CampoTexto(
+            etiqueta = "Contraseña",
+            valor = contrasena,
+            onValorCambia = { contrasena = it },
+            placeholder = "Mínimo 6 caracteres",
+            teclado = KeyboardType.Password,
+            esError = errorContrasena,
+            mensajeError = when {
+                intentoGuardar && contrasena.isBlank() -> "La contraseña es obligatoria"
+                intentoGuardar && contrasena.length < 6 -> "Mínimo 6 caracteres"
+                else -> null
+            }
+        )
+        Spacer(Modifier.height(10.dp))
 
         CampoTexto(
             etiqueta = "Dirección de entrega",
             valor = direccion,
-            onValorCambia = {
-                direccion = it
-                if (errorMensaje != null) errorMensaje = null
-            },
-            placeholder = "Av. Los Olivos 123"
+            onValorCambia = { direccion = it },
+            placeholder = "",
+            esError = errorDireccion,
+            mensajeError = if (errorDireccion) "La dirección es obligatoria" else null
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
 
         CampoTexto(
-            etiqueta = "Referencia",
+            etiqueta = "Referencia (Opcional)",
             valor = referencia,
             onValorCambia = { referencia = it },
-            placeholder = "Frente al parque"
+            placeholder = ""
         )
-
-        if (errorMensaje != null) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = errorMensaje.orEmpty(),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
 
         Spacer(Modifier.height(28.dp))
 
         BotonPrimario(
             texto = "Crear cuenta",
             onClick = {
-                if (nombre.isBlank() || telefono.isBlank() || direccion.isBlank()) {
-                    errorMensaje = "Por favor completa tu nombre, teléfono y dirección"
-                } else {
-                    onCrearCuenta(nombre.trim(), telefono.trim(), direccion.trim(), referencia.trim())
+                intentoGuardar = true
+                val formularioValido = nombre.isNotBlank() &&
+                        telefono.isNotBlank() &&
+                        contrasena.length >= 6 &&
+                        direccion.isNotBlank()
+
+                if (formularioValido) {
+                    onCrearCuenta(
+                        nombre.trim(),
+                        telefono.trim(),
+                        contrasena.trim(),
+                        direccion.trim(),
+                        referencia.trim()
+                    )
                 }
             }
         )
@@ -180,12 +192,4 @@ private fun EncabezadoRegistro(onVolver: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun RegistroPreview() {
-    BodegaTheme {
-        RegistroScreen(onVolver = {}, onCrearCuenta = { _, _, _, _ -> })
-    }
 }
